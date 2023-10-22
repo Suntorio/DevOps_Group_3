@@ -14,7 +14,7 @@
 
     homebrew_path: /usr/local/bin/brew
     environment_path: /etc/environment
-    new_path: "/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:$PATH"
+    new_path: "/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin"
 
   tasks:
     # Update and Install Packages
