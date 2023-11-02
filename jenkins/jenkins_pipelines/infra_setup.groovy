@@ -7,7 +7,7 @@ pipeline {
     stages {
         stage('Clone Git repo') {
             steps {
-                git(branch: 'master', url: 'git@github.com:Suntorio/DevOps_Group_3.git', credentialsId: 'access_to_git')
+                git(branch: 'master', url: 'https://github.com/Suntorio/DevOps_Group_3.git', credentialsId: 'access_to_git')
             }
         }
         stage('Plan') {

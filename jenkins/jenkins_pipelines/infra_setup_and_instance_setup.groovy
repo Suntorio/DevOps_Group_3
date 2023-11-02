@@ -9,7 +9,7 @@ pipeline {
             steps {
                 git(
                     branch: 'master', 
-                    url: 'git@github.com:Suntorio/DevOps_Group_3.git', 
+                    url: 'https://github.com/Suntorio/DevOps_Group_3.git', 
                     credentialsId: 'access_to_git'
                 )
             }
