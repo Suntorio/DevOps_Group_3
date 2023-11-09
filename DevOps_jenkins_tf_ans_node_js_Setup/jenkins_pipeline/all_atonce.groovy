@@ -24,11 +24,11 @@ pipeline {
                 checkout([
                     $class: 'GitSCM',
                     branches: 'master',
-                    userRemoteConfigs: [[
+                    userRemoteConfigs: [
                         url: 'https://github.com/Suntorio/DevOps_Group_3.git',
                         credentialsId: 'access_to_git'
                     ]]
-                ])
+                )
             }
         }
         stage('Terraform Plan') {
