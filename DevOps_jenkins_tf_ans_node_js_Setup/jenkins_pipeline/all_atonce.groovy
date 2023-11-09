@@ -21,13 +21,10 @@ pipeline {
     stages {
         stage('Clone Git repo') {
             steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: 'master',
-                    userRemoteConfigs: [
-                        url: 'https://github.com/Suntorio/DevOps_Group_3.git',
-                        credentialsId: 'access_to_git'
-                    ]]
+                git(
+                    branch: 'master', 
+                    url: 'https://github.com/Suntorio/DevOps_Group_3.git', 
+                    credentialsId: 'access_to_git'
                 )
             }
         }
@@ -84,7 +81,7 @@ pipeline {
                 '''
             }
         }
-        stage('Run Ansible for the battlkships app') {
+        stage('Run Ansible for the battleships app') {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'access_for_new_node_js_app', keyFileVariable: 'SSH_KEY')]) {
                     dir('DevOps_jenkins_tf_ans_node_js_Setup/terraform_ansible_generic_instace_setup_template/ansible'){
