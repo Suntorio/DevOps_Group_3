@@ -26,7 +26,7 @@ pipeline {
                     branches: 'main',
                     userRemoteConfigs: [[
                         url: 'https://github.com/Suntorio/DevOps_Group_3.git',
-                        credentialsId: 'git_access_PAT'
+                        credentialsId: 'access_to_git'
                     ]]
                 ])
             }
