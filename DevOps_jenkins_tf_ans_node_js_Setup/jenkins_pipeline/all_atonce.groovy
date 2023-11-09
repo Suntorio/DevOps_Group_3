@@ -28,9 +28,12 @@ pipeline {
                 )
             }
         }
+        
+        WorkDir = 'DevOps_jenkins_tf_ans_node_js_Setup/terraform_ansible_generic_instace_setup_template'    //My test variable
+        
         stage('Terraform Plan') {
             steps {
-                dir('DevOps_jenkins_tf_ans_node_js_Setup/terraform_ansible_generic_instace_setup_template') {
+                dir(WorkDir) {
                     sh '''
                     echo "yes" | terraform init
                     terraform plan -out=terraform.tfplan
