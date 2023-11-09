@@ -12,7 +12,7 @@ terraform {
 
   required_version = ">= 1.3"
   backend "s3" {
-    bucket = "terraform-state-test-my-cloud"
+    bucket = "terraform-state-test-my-cloud-aleks"
     key    = "nodejsapp_example/terraform.tfstate"
     region = "us-east-1"
   }
