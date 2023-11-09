@@ -25,7 +25,7 @@ pipeline {
         }
         stage('Terraform Plan') {
             steps {
-                dir('terraform_ansible_generic_instace_setup_template') {
+                dir('DevOps_jenkins_tf_ans_node_js_Setup/terraform_ansible_generic_instace_setup_template') {
                     sh '''
                     echo "yes" | terraform init
                     terraform plan -destroy -out=destroyplan.tfplan
@@ -55,7 +55,7 @@ pipeline {
         }
         stage('Terraform Apply Destroy') {
             steps {
-                dir('terraform_ansible_generic_instace_setup_template'){
+                dir('DevOps_jenkins_tf_ans_node_js_Setup/terraform_ansible_generic_instace_setup_template'){
                 sh '''
                 terraform apply destroyplan.tfplan
                 '''
