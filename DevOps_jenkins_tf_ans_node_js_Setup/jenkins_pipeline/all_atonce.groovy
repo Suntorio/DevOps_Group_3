@@ -16,6 +16,10 @@ pipeline {
     environment {
         // Define a variable to hold the output from the previous stage
         PREVIOUS_STAGE_OUTPUT = ''
+        
+        //My test variables
+        WORK_DIR = 'DevOps_jenkins_tf_ans_node_js_Setup/terraform_ansible_generic_instace_setup_template'
+        WORK_DIR_ANSIBLE = 'DevOps_jenkins_tf_ans_node_js_Setup/terraform_ansible_generic_instace_setup_template/ansible'
     }
 
     stages {
@@ -28,12 +32,10 @@ pipeline {
                 )
             }
         }
-        
-        WorkDir = 'DevOps_jenkins_tf_ans_node_js_Setup/terraform_ansible_generic_instace_setup_template'    //My test variable
-        
+                    
         stage('Terraform Plan') {
             steps {
-                dir(WorkDir) {
+                dir(WORK_DIR) {
                     sh '''
                     echo "yes" | terraform init
                     terraform plan -out=terraform.tfplan
@@ -63,14 +65,14 @@ pipeline {
         }
         stage('Terraform Apply') {
             steps {
-                dir('DevOps_jenkins_tf_ans_node_js_Setup/terraform_ansible_generic_instace_setup_template') {
+                dir(WORK_DIR) {
                     sh 'terraform apply terraform.tfplan'
                 }
             }
         }
         stage('Get Terraform Outputs') {
             steps {
-                dir('DevOps_jenkins_tf_ans_node_js_Setup/terraform_ansible_generic_instace_setup_template') {
+                dir(WORK_DIR) {
                     sh 'terraform output web-address-nodejs > ./ansible/instance_ip.txt'
                 }
             }
@@ -87,7 +89,7 @@ pipeline {
         stage('Run Ansible for the battleships app') {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'access_for_new_node_js_app', keyFileVariable: 'SSH_KEY')]) {
-                    dir('DevOps_jenkins_tf_ans_node_js_Setup/terraform_ansible_generic_instace_setup_template/ansible'){
+                    dir(WORK_DIR_ANSIBLE){
                         sh '''
                         sleep 120
                         ansible-playbook -i instance_ip.txt playbook_nodejs_battleships.yaml -u ubuntu --private-key=$SSH_KEY -e 'ansible_ssh_common_args="-o StrictHostKeyChecking=no"'
@@ -100,7 +102,7 @@ pipeline {
         stage('Run Ansible for the dadjokes app') {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'access_for_new_node_js_app', keyFileVariable: 'SSH_KEY')]) {
-                    dir('DevOps_jenkins_tf_ans_node_js_Setup/terraform_ansible_generic_instace_setup_template/ansible'){
+                    dir(WORK_DIR_ANSIBLE){
                         sh '''
                         ansible-playbook -i instance_ip.txt playbook_nodejs_dadjokes.yaml -u ubuntu --private-key=$SSH_KEY -e 'ansible_ssh_common_args="-o StrictHostKeyChecking=no"'
                         '''
