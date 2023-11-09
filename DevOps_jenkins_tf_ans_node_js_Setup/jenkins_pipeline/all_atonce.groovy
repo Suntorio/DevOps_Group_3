@@ -23,7 +23,7 @@ pipeline {
             steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: 'main',
+                    branches: 'master',
                     userRemoteConfigs: [[
                         url: 'https://github.com/Suntorio/DevOps_Group_3.git',
                         credentialsId: 'access_to_git'
