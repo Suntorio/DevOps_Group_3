@@ -2,7 +2,7 @@ version: "3"
 services:
   jenkins:
     container_name: jenkins
-    image: jenkins_with_docker:latest
+    image: my_jenkins_docker:v1
     volumes:
      - '/home/aleks/Documents/PASV_DevOps/MyGitHub/DevOps_Group_3/Docker/docker_jenkins/jenkins:/var/jenkins_home:rw'
     ports:
