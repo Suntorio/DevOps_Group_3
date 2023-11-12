@@ -1,0 +1,32 @@
+Manifest-Version: 1.0
+Created-By: Maven Archiver 3.6.0
+Build-Jdk-Spec: 11
+Specification-Title: JWT for Blue Ocean
+Specification-Version: 1.27
+Implementation-Title: JWT for Blue Ocean
+Implementation-Version: 1.27.9
+Group-Id: io.jenkins.blueocean
+Artifact-Id: blueocean-jwt
+Short-Name: blueocean-jwt
+Long-Name: JWT for Blue Ocean
+Url: https://github.com/jenkinsci/blueocean-plugin/blob/master/blueocean
+ /doc/BlueOcean.adoc
+Plugin-Version: 1.27.9
+Hudson-Version: 2.401.3
+Jenkins-Version: 2.401.3
+Plugin-Dependencies: blueocean-commons:1.27.9,mailer:463.vedf8358e006b_
+Plugin-Developers: Thorsten Iberian Sumurai:scherler:,Cliff Meyers:cliff
+ meyers:,Tom Fennelly:tfennelly:,Vivek Pandey:vivek:,Kohsuke:kohsuke:,Jo
+ sh McDonald:sophistifunk:,Ivan Meredith:imeredith:,Michael Neale:michae
+ lneale:,Keith Zantow:kzantow:,James Dumay:i386:,Marc:marcesher:,Paul Dr
+ agoonis:dragoonis:,Ivan Santos:pragmaticivan:,Peter Dave Hello:PeterDav
+ eHello:,Alexandru Somai:alexsomai:
+Plugin-License-Name: MIT License
+Plugin-License-Url: https://opensource.org/licenses/MIT
+Plugin-ScmConnection: scm:git:https://github.com/jenkinsci/blueocean-plu
+ gin.git
+Plugin-ScmTag: blueocean-parent-1.27.9
+Plugin-ScmUrl: https://github.com/jenkinsci/blueocean-plugin
+Plugin-GitHash: 7f25c9f0dc9d58a3eaa7c4cc77fa792dd608db81
+Implementation-Build: 7f25c9f0dc9d58a3eaa7c4cc77fa792dd608db81
+

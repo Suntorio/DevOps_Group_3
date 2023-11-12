@@ -1,0 +1,30 @@
+Manifest-Version: 1.0
+Created-By: Maven Archiver 3.6.0
+Build-Jdk-Spec: 11
+Specification-Title: Favorite
+Specification-Version: 2.4
+Implementation-Title: Favorite
+Implementation-Version: 2.4.3
+Plugin-Class: hudson.plugins.favorite.FavoritePlugin
+Group-Id: org.jvnet.hudson.plugins
+Artifact-Id: favorite
+Short-Name: favorite
+Long-Name: Favorite
+Url: https://github.com/jenkinsci/favorite-plugin
+Plugin-Version: 2.4.3
+Hudson-Version: 2.361.4
+Jenkins-Version: 2.361.4
+Plugin-Dependencies: mailer:448.v5b_97805e3767,matrix-project:789.v57a_7
+ 25b_63c79,token-macro:359.vb_cde11682e0c
+Plugin-Developers: Larry Shatzer, Jr.:lshatzer:larrys@gmail.com,James Du
+ may:jamesdumay:jdumay@cloudbees.com,Michael Neale:michaelneale:mneale@c
+ loudbees.com
+Plugin-License-Name: MIT License
+Plugin-License-Url: https://opensource.org/licenses/MIT
+Plugin-ScmConnection: scm:git:https://github.com/jenkinsci/favorite-plug
+ in.git
+Plugin-ScmTag: favorite-2.4.3
+Plugin-ScmUrl: https://github.com/jenkinsci/favorite-plugin
+Plugin-GitHash: 6be7f1a1b24e0e74359e1334ea36bafeadacbad8
+Implementation-Build: 6be7f1a1b24e0e74359e1334ea36bafeadacbad8
+
