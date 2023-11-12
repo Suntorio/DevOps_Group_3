@@ -1,0 +1,10 @@
+commit ef7bdd993c9d38484dff0c29818670e0e2910c69
+tree 39a7e9a93e6d376698f9f5a623154cc252d8c6ed
+parent 468e42b7e504969a57074bd023e80e79124099af
+author Suntorio <suntorio80@gmail.com> 2023-11-03 09:30:54 -0700
+committer Suntorio <suntorio80@gmail.com> 2023-11-03 09:30:54 -0700
+
+    change bucket's name
+
+
+:100644 100644 b1f2963809782085b2c51a7896d06cd2f75c1a6f b0a552fc24292fe3070692001159da00f41dd784 M	jenkins/terraform_ansible_generic_instace_setup_template/main.tf

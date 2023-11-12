@@ -1,0 +1,161 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1360.vc6700e3136f5">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2150.v4cfd8916915c"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2150.v4cfd8916915c">
+      <jobProperties/>
+      <triggers>
+        <string>com.cloudbees.jenkins.GitHubPushTrigger</string>
+        <string>hudson.triggers.SCMTrigger</string>
+      </triggers>
+      <parameters>
+        <string>ACTION</string>
+      </parameters>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>ACTION</name>
+          <description>Action to take</description>
+          <defaultValue>proceed</defaultValue>
+          <trim>false</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers>
+        <com.cloudbees.jenkins.GitHubPushTrigger plugin="github@1.37.3.1">
+          <spec></spec>
+        </com.cloudbees.jenkins.GitHubPushTrigger>
+        <hudson.triggers.SCMTrigger>
+          <spec>H * * * *</spec>
+          <ignorePostCommitHooks>false</ignorePostCommitHooks>
+        </hudson.triggers.SCMTrigger>
+      </triggers>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@3806.va_3a_6988277b_2">
+    <script>pipeline {
+    agent any
+
+    triggers {
+        // Polls SCM periodically but the schedule is ignored if a webhook is set up
+        githubPush()
+        pollSCM(&apos;H * * * *&apos;)
+    }
+    parameters {
+        string(name: &apos;ACTION&apos;, defaultValue: &apos;proceed&apos;, description: &apos;Action to take&apos;)
+    }
+    tools {
+        terraform &apos;tf1.6&apos;
+    }
+
+    environment {
+        // Define a variable to hold the output from the previous stage
+        PREVIOUS_STAGE_OUTPUT = &apos;&apos;
+        
+        //My test variables
+        WORK_DIR = &apos;DevOps_jenkins_tf_ans_node_js_Setup/terraform_ansible_generic_instace_setup_template&apos;
+        WORK_DIR_ANSIBLE = &apos;DevOps_jenkins_tf_ans_node_js_Setup/terraform_ansible_generic_instace_setup_template/ansible&apos;
+    }
+
+    stages {
+        stage(&apos;Clone Git repo&apos;) {
+            steps {
+                git(
+                    branch: &apos;master&apos;, 
+                    url: &apos;https://github.com/Suntorio/DevOps_Group_3.git&apos;, 
+                    credentialsId: &apos;access_to_git&apos;
+                )
+            }
+        }
+                    
+        stage(&apos;Terraform Plan&apos;) {
+            steps {
+                dir(WORK_DIR) {
+                    sh &apos;&apos;&apos;
+                    echo &quot;yes&quot; | terraform init
+                    terraform plan -out=terraform.tfplan
+                    &apos;&apos;&apos;
+                    script {
+                        env.PREVIOUS_STAGE_OUTPUT = sh(script: &apos;echo &quot;Output from previous stage&quot;&apos;, returnStdout: true).trim()
+                    }
+                }
+            }
+        }
+        stage(&apos;Approval&apos;) {
+            steps {
+                // Echo the output from the previous stage
+                echo &quot;Output from the Previous Stage: ${env.PREVIOUS_STAGE_OUTPUT}&quot;
+                // Ask for the input to proceed or abort the build
+                script {
+                    def userInput = input(
+                        id: &apos;userInput&apos;, 
+                        message: &apos;Choose to proceed or abort the build:&apos;, 
+                        parameters: [choice(name: &apos;Proceed?&apos;, choices: [&apos;proceed&apos;, &apos;abort&apos;], description: &apos;Proceed or Abort&apos;)]
+                    )
+                    if (userInput == &apos;abort&apos;) {
+                        error(&apos;Aborting the build.&apos;)
+                    }
+                }
+            }
+        }
+        stage(&apos;Terraform Apply&apos;) {
+            steps {
+                dir(WORK_DIR) {
+                    sh &apos;terraform apply terraform.tfplan&apos;
+                }
+            }
+        }
+        stage(&apos;Get Terraform Outputs&apos;) {
+            steps {
+                dir(WORK_DIR) {
+                    sh &apos;terraform output web-address-nodejs &gt; ./ansible/instance_ip.txt&apos;
+                }
+            }
+        }
+        stage(&apos;Install Ansible&apos;) {
+            steps {
+                sh &apos;&apos;&apos;
+                sudo apt-add-repository ppa:ansible/ansible -y
+                sudo apt-get update
+                sudo apt-get install ansible -y
+                &apos;&apos;&apos;
+            }
+        }
+        stage(&apos;Run Ansible for the battleships app&apos;) {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: &apos;access_for_new_node_js_app&apos;, keyFileVariable: &apos;SSH_KEY&apos;)]) {
+                    dir(WORK_DIR_ANSIBLE){
+                        sh &apos;&apos;&apos;
+                        sleep 120
+                        ansible-playbook -i instance_ip.txt playbook_nodejs_battleships.yaml -u ubuntu --private-key=$SSH_KEY -e &apos;ansible_ssh_common_args=&quot;-o StrictHostKeyChecking=no&quot;&apos;
+                        &apos;&apos;&apos;
+                    }
+                }
+            }
+        }
+
+        stage(&apos;Run Ansible for the dadjokes app&apos;) {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: &apos;access_for_new_node_js_app&apos;, keyFileVariable: &apos;SSH_KEY&apos;)]) {
+                    dir(WORK_DIR_ANSIBLE){
+                        sh &apos;&apos;&apos;
+                        ansible-playbook -i instance_ip.txt playbook_nodejs_dadjokes.yaml -u ubuntu --private-key=$SSH_KEY -e &apos;ansible_ssh_common_args=&quot;-o StrictHostKeyChecking=no&quot;&apos;
+                        &apos;&apos;&apos;
+                    }
+                }
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

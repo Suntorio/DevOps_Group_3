@@ -1,0 +1,13 @@
+Started on Nov 12, 2023, 7:01:00 PM
+Using strategy: Default
+[poll] Last Built Revision: Revision 62471eedd6e6aaa704e8a4f76bd12fd4ab5e429b (refs/remotes/origin/master)
+The recommended git tool is: NONE
+using credential access_to_git
+ > git --version # timeout=10
+ > git --version # 'git version 2.34.1'
+using GIT_SSH to set credentials git
+ > git ls-remote -h -- https://github.com/Suntorio/DevOps_Group_3.git # timeout=10
+Found 1 remote heads on https://github.com/Suntorio/DevOps_Group_3.git
+[poll] Latest remote head revision on refs/heads/master is: e92b79caa7065264418e8fdd958949b18c864c70
+Done. Took 0.53 sec
+Changes found

@@ -1,0 +1,22 @@
+commit ef7bdd993c9d38484dff0c29818670e0e2910c69
+tree 39a7e9a93e6d376698f9f5a623154cc252d8c6ed
+parent 468e42b7e504969a57074bd023e80e79124099af
+author Suntorio <suntorio80@gmail.com> 2023-11-03 09:30:54 -0700
+committer Suntorio <suntorio80@gmail.com> 2023-11-03 09:30:54 -0700
+
+    change bucket's name
+
+
+:100644 100644 b1f2963809782085b2c51a7896d06cd2f75c1a6f b0a552fc24292fe3070692001159da00f41dd784 M	jenkins/terraform_ansible_generic_instace_setup_template/main.tf
+commit 468e42b7e504969a57074bd023e80e79124099af
+tree ff647aeb7253a669e47b18bfa4f73d983b34fe98
+parent 2242a89badba36ae392c99a443e4ea9f2d03c469
+author Suntorio <suntorio80@gmail.com> 2023-11-01 23:01:08 -0700
+committer Suntorio <suntorio80@gmail.com> 2023-11-01 23:01:08 -0700
+
+    updates
+
+
+:100644 100644 5298a02c69d5436aa7d4a73afba890071160a6c2 f9e5b64bb4258e061c1ad090ee66b1eeddd4cf1a M	jenkins/jenkins_pipelines/infra_destroy_node-js_app.groovy
+:100644 100644 181bc5b3776cc78881c6747eb014f171455b1a94 246ce02c6c43f121436e3bf631bbb6c9cd59c5ce M	jenkins/jenkins_pipelines/infra_setup.groovy
+:100644 100644 fb5399e646010d888218d96413e664c028a23802 065add2e4eccf3dac4975216367c27dc55e70365 M	jenkins/jenkins_pipelines/infra_setup_and_instance_setup.groovy

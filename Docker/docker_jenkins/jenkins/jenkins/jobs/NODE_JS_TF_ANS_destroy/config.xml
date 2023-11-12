@@ -1,0 +1,59 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1360.vc6700e3136f5">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2150.v4cfd8916915c"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2150.v4cfd8916915c">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@3806.va_3a_6988277b_2">
+    <script>pipeline {
+    agent any
+    tools {
+        terraform &apos;tf1.6&apos;
+    }
+    stages {
+        stage(&apos;Clone Git repo&apos;) {
+            steps {
+                git(
+                branch: &apos;master&apos;,
+                url: &apos;https://github.com/Suntorio/DevOps_Group_3.git&apos;,
+                credentialsId: &apos;access_to_git&apos;
+                )
+            }
+        }
+        stage(&apos;Terraform Initialize and Plan Destroy&apos;) {
+            steps {
+                sh &apos;&apos;&apos;
+                cd ./jenkins/terraform_ansible_generic_instace_setup_template
+                terraform init
+                terraform plan -destroy -out=destroyplan.tfplan
+                &apos;&apos;&apos;
+            }
+        }
+        stage(&apos;Plan verification and user input for Destroy&apos;) {
+            steps {
+                input message: &apos;proceed or abort?&apos;, ok: &apos;ok&apos;
+            }
+        }
+        stage(&apos;Terraform Apply Destroy&apos;) {
+            steps {
+                sh &apos;&apos;&apos;
+                cd ./jenkins/terraform_ansible_generic_instace_setup_template
+                terraform apply destroyplan.tfplan
+                &apos;&apos;&apos;
+            }
+        }
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

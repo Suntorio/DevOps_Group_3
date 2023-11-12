@@ -1,0 +1,25 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<fingerprint>
+  <timestamp>2023-11-02 05:28:21.275 UTC</timestamp>
+  <md5sum>524934d894ab2b1f2ffddc615c351f81</md5sum>
+  <fileName>Credential id=access_to_git name=git (git)</fileName>
+  <usages>
+    <entry>
+      <string>NODE_JS_TF_ANS_destroy</string>
+      <ranges>1-8</ranges>
+    </entry>
+    <entry>
+      <string>NODE_JS_TF_ANS_setup</string>
+      <ranges>2-7</ranges>
+    </entry>
+    <entry>
+      <string>DevOps_jenkins_tf_ans_node_js_setup_2websites_setup</string>
+      <ranges>8-12,14-15</ranges>
+    </entry>
+    <entry>
+      <string>DevOps_jenkins_tf_ans_node_js_setup_2websites_destroy</string>
+      <ranges>2-5</ranges>
+    </entry>
+  </usages>
+  <facets/>
+</fingerprint>

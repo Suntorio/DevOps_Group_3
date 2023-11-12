@@ -1,0 +1,50 @@
+commit e92b79caa7065264418e8fdd958949b18c864c70
+tree 4400495bfebefb4dd6d0e6a186c4a6de10d2da87
+parent 04ae4284a19b34d42e76cd8a36a0c3fd17ca675d
+author Suntorio <suntorio80@gmail.com> 2023-11-11 19:44:44 -0800
+committer Suntorio <suntorio80@gmail.com> 2023-11-11 19:44:44 -0800
+
+    updates
+
+
+:100644 100644 f58c9d24a703442eecc243ca4f21868aed044d4d f680251ff2e7deda0659b954a46d05cf60d4dd3c M	Docker/docker_jenkins/jenkins_docker_setup.yaml
+commit 04ae4284a19b34d42e76cd8a36a0c3fd17ca675d
+tree ff57599c66c1f526ade325f35aa385f96e9ad552
+parent 0a75ef8df91dec61c90596d1378d0957e091c45f
+author Suntorio <suntorio80@gmail.com> 2023-11-11 19:26:19 -0800
+committer Suntorio <suntorio80@gmail.com> 2023-11-11 19:26:19 -0800
+
+    updates
+
+
+:000000 100644 0000000000000000000000000000000000000000 f58c9d24a703442eecc243ca4f21868aed044d4d A	Docker/docker_jenkins/jenkins_docker_setup.yaml
+commit 0a75ef8df91dec61c90596d1378d0957e091c45f
+tree f87ff19cf4e562f88cdbe7e77ed6362c22b0779f
+parent 3f53120f583277e6f8222a647aa17539e380cd8c
+author Suntorio <suntorio80@gmail.com> 2023-11-11 19:14:02 -0800
+committer Suntorio <suntorio80@gmail.com> 2023-11-11 19:14:02 -0800
+
+    updates
+
+
+:000000 100644 0000000000000000000000000000000000000000 5a325343742f8494813a7c206d263cb288e62d89 A	Docker/config.xml
+commit 3f53120f583277e6f8222a647aa17539e380cd8c
+tree c961f60717d3b96b93061863f6333a3d7a218fdb
+parent 836fdd631d14cc3e3810653f6800763f9b7feaab
+author Suntorio <suntorio80@gmail.com> 2023-11-11 14:19:12 -0800
+committer Suntorio <suntorio80@gmail.com> 2023-11-11 14:19:12 -0800
+
+    Add Docker folder
+
+
+:000000 100644 0000000000000000000000000000000000000000 fce3f13986eebc05f28f0b0ca6838343b2dbda39 A	Docker/docker_jenkins/Dockerfile
+commit 836fdd631d14cc3e3810653f6800763f9b7feaab
+tree ec88a283c1c73fa9fee464bf2d033af9d2b6204d
+parent 62471eedd6e6aaa704e8a4f76bd12fd4ab5e429b
+author Suntorio <suntorio80@gmail.com> 2023-11-09 10:10:52 -0800
+committer Suntorio <suntorio80@gmail.com> 2023-11-09 10:10:52 -0800
+
+    add my variables
+
+
+:100644 100644 e1401122dd0a00322726ecdc84f7aec121f2951f 15738a94fe09e876bcb9c0d64a42d9b4d32d8c8d M	DevOps_jenkins_tf_ans_node_js_Setup/jenkins_pipeline/all_atonce.groovy
