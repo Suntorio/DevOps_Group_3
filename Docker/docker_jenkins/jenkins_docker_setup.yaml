@@ -4,7 +4,7 @@ services:
     container_name: jenkins
     image: jenkins_with_docker:latest
     volumes:
-     - '/home/axelp/personal/DevOps/lessons/Docker/docker_jenkins/jenkins:/var/jenkins_home:rw'
+     - '/home/aleks/Documents/PASV_DevOps/MyGitHub/DevOps_Group_3/Docker/docker_jenkins/jenkins:/var/jenkins_home:rw'
     ports:
     - 8080:8080
     - 8090:8090
