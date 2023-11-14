@@ -10,7 +10,7 @@
 
 3. **Archive Jenkins $HOME Directory**
     - A helpful guide: [Backing up Jenkins Server](https://medium.com/@swarnamalya044/backing-up-jenkins-server-and-restoring-into-another-new-jenkins-server-61980d74b34d)
-    - Command: `tar -zcvf backupname.tar.gz /var/lib/jenkins/`
+    - Command: `tar -zcvf jenkins_bck_111323.tar.gz /var/lib/jenkins/`
 
 4. **(Optional) Transfer Archive to S3**
     - Ensure instance has role access to S3 or proper AWS user credentials.
