@@ -10,24 +10,24 @@
 
 3. **Archive Jenkins $HOME Directory**
     - A helpful guide: [Backing up Jenkins Server](https://medium.com/@swarnamalya044/backing-up-jenkins-server-and-restoring-into-another-new-jenkins-server-61980d74b34d)
-    - Command: `tar -zcvf jenkins_bck_111323.tar.gz /var/lib/jenkins/`
+    - Command: `sudo tar -zcvf jenkins_bck_111323.tar.gz /var/lib/jenkins/`
 
 4. **(Optional) Transfer Archive to S3**
     - Ensure instance has role access to S3 or proper AWS user credentials.
     - Install AWS CLI: `apt install aws-cli`
-    - Copy to S3: `aws s3 cp jenkins_bck_111323.tar.gz s3://terraform-state-test-my-cloud-aleks`
+    - Copy to S3: `aws s3 cp jenkins_bck_111323.tar.gz s3://jenkins-backups-aleks`
 
 5. **(Optional) Download Archive to Your Localhost**
     - Install and configure AWS CLI.
-    - Download from S3: `aws s3 cp s3://terraform-state-test-my-cloud-aleks jenkins_bck_111323.tar.gz`
+    - Download from S3: `aws s3 cp s3://jenkins-backups-aleks jenkins_bck_111323.tar.gz`
     - *Alternatively, download directly from the instance using rsync*:
       - `rsync -avz -e "ssh -i {your_ssh_key_path}" --progress ubuntu@{jenkins_instance_ip}:/var/lib/jenkins/ {local_directory}`
 
 6. **Unarchive Tarball**
-    - Run: `sudo tar -zxvf jenkins_bck_111323.tar.gz -C /home/aleks/Documents/PASV_DevOps/MyGitHub/Backup/`
+    - Run: `sudo tar -zxvf jenkins_bck_111323.tar.gz -C /home/aleks/Documents/PASV_DevOps/MyGitHub/Backup/jenkins_bck_111323/`
 
 7. **Change File Ownership**
-    - Run: `chown {USER} /home/aleks/Documents/PASV_DevOps/MyGitHub/Backup/`
+    - Run: `chown {USER} /home/aleks/Documents/PASV_DevOps/MyGitHub/Backup/jenkins_bck_111323/`
 
 8. **Update `jenkins_docker_setup.yaml`**
 
