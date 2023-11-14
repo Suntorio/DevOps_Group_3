@@ -24,10 +24,10 @@
       - `rsync -avz -e "ssh -i {your_ssh_key_path}" --progress ubuntu@{jenkins_instance_ip}:/var/lib/jenkins/ {local_directory}`
 
 6. **Unarchive Tarball**
-    - Run: `sudo tar -zxvf jenkins_bck_111323.tar.gz -C target_directory`
+    - Run: `sudo tar -zxvf jenkins_bck_111323.tar.gz -C /home/aleks/Documents/PASV_DevOps/MyGitHub/Backup/`
 
 7. **Change File Ownership**
-    - Run: `chown {USER} target_directory`
+    - Run: `chown {USER} /home/aleks/Documents/PASV_DevOps/MyGitHub/Backup/`
 
 8. **Update `jenkins_docker_setup.yaml`**
 
