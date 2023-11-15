@@ -14,12 +14,13 @@
 
 4. **(Optional) Transfer Archive to S3**
     - Ensure instance has role access to S3 or proper AWS user credentials.
-    - Install AWS CLI: `apt install aws-cli`
+    - Install AWS CLI: `apt install aws-cli` or `sudo snap install aws-cli --classic`
     - Copy to S3: `aws s3 cp jenkins_bck_111323.tar.gz s3://jenkins-backups-aleks`
 
 5. **(Optional) Download Archive to Your Localhost**
     - Install and configure AWS CLI.
-    - Download from S3: `aws s3 cp s3://jenkins-backups-aleks jenkins_bck_111323.tar.gz`
+    - Download from S3: `aws s3 cp s3://jenkins-backups-aleks jenkins_bck_111323.tar.gz` #how to configure credentials:
+      https://docs.aws.amazon.com/cli/latest/userguide/cli-authentication-user.html
     - *Alternatively, download directly from the instance using rsync*:
       - `rsync -avz -e "ssh -i {your_ssh_key_path}" --progress ubuntu@{jenkins_instance_ip}:/var/lib/jenkins/ {local_directory}`
 
