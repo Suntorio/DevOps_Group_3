@@ -4,7 +4,7 @@ services:
     container_name: jenkins
     image: my_jenkins_docker:v2
     volumes:
-     - '/home/aleks/Documents/PASV_DevOps/MyGitHub/Backup/jenkins_bck_111323:/var/jenkins_home:rw'
+     - '/home/aleks/Documents/PASV_DevOps/MyGitHub/Backup/jenkins_bck_111323/var/lib/jenkins/:/var/jenkins_home:rw'
     ports:
     - 8080:8080
     - 8090:8090
