@@ -29,6 +29,9 @@
 
 7. **Change File Ownership**
     - Run: `chown {USER} /home/aleks/Documents/PASV_DevOps/MyGitHub/Backup/jenkins_bck_111323/`
+    
+    sudo docker build . -t my_jenkins_docker:v2
+
 
 8. **Update `jenkins_docker_setup.yaml`**
 
