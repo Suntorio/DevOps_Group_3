@@ -1,0 +1,82 @@
+
+# Service Definition for MongoDB
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+  namespace: pacman
+  labels:
+    app: mongo
+spec:
+  ports:
+    - port: 27017
+      targetPort: 27017
+  selector:
+    app: mongo
+  clusterIP: None # Headless service for StatefulSet
+  type: ClusterIP
+
+---
+
+# ConfigMap with MongoDB Initialization Script
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-init-script
+  namespace: pacman
+data:
+  setup.sh: |
+    #!/bin/bash
+    set -e
+
+    mongo -- "$MONGO_INITDB_DATABASE" <<EOF
+        db.createUser({user: "pacman", pwd: "pacman", roles: [{role: "readWrite", db: "admin" }]});
+        use pacman;
+        db.createCollection("init");
+        db.init.insert({name: "init"});
+        db.init.find();
+        db.createUser({user: "pacman", pwd: "pacman", roles: [{role: "readWrite", db: "pacman" }]});
+    EOF
+
+---
+
+# StatefulSet Definition for MongoDB
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo
+  namespace: pacman
+spec:
+  serviceName: "mongo"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:latest
+          ports:
+            - name: mongo
+              containerPort: 27017
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+            - name: mongo-initdb
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: mongo-initdb
+          configMap:
+            name: mongo-init-script
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 8Gi
