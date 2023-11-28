@@ -100,6 +100,6 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/home/axelp/personal/DevOps/lessons/k8s/example_packman/minikube-local-k8s-cluster-deploy/mongo-data"  # Update this path based on your Minikube mount
+    path: "/home/aleks/Documents/PASV_DevOps/MyGitHub/DevOps_Group_3/k8s/example_packman/minikube-local-k8s-cluster-deploy/mongo-data" # Update this path based on your Minikube mount
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ""
