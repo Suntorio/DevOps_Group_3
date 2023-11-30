@@ -86,5 +86,17 @@ pipeline {
                 '''
             }
         }
+        stage('Run Ansible') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'access_for_new_node_js_app', keyFileVariable: 'SSH_KEY')]) {
+                    dir(WORK_DIR_ANSIBLE) {
+                    sh '''
+                    sleep 120
+                    ansible-playbook -i instance_ip.txt instance-docker-setup.yaml -u ubuntu --private-key=$SSH_KEY -e 'ansible_ssh_common_args="-o StrictHostKeyChecking=no"'
+                    '''
+                    }
+                }
+            }
+        }
     }
 }
