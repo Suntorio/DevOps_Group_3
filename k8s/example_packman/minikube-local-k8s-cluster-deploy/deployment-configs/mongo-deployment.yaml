@@ -86,20 +86,20 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  volumeName: local-pv
-  storageClassName: ""
+  volumeName: local-pv-mongo
+  storageClassName: standard
 
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: local-pv
+  name: local-pv-mongo
 spec:
   capacity:
     storage: 1Gi
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: "/home/aleks/Documents/PASV_DevOps/MyGitHub/DevOps_Group_3/k8s/example_packman/minikube-local-k8s-cluster-deploy/mongo-data" # Update this path based on your Minikube mount
+    path: "/data/mongo-data" # A path that is accessable in Minikube
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: ""
+  storageClassName: standard
