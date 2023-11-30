@@ -13,16 +13,15 @@ pipeline {
         terraform 'tf1.6'
     }
 
-    environment {
+        environment {
         // Define a variable to hold the output from the previous stage
         PREVIOUS_STAGE_OUTPUT = ''
         
         //My test variables
-        WORK_DIR = 'jenkins/pacman_ec2_mine'
-        WORK_DIR_ANSIBLE = 'jenkins/pacman_ec2_mine/ansible'
-    }
+        WORK_DIR = 'jenkins/pacman_ec2_mine/terraform'
+        }
 
-    stages {
+      stages {
         stage('Clone Git repo') {
             steps {
                 git(
@@ -32,13 +31,13 @@ pipeline {
                 )
             }
         }
-                    
+
         stage('Terraform Plan') {
             steps {
                 dir(WORK_DIR) {
                     sh '''
                     echo "yes" | terraform init
-                    terraform plan -out=terraform.tfplan
+                    terraform plan -destroy -out=destroyplan.tfplan
                     '''
                     script {
                         env.PREVIOUS_STAGE_OUTPUT = sh(script: 'echo "Output from previous stage"', returnStdout: true).trim()
@@ -63,27 +62,13 @@ pipeline {
                 }
             }
         }
-        stage('Terraform Apply') {
+        stage('Terraform Apply Destroy') {
             steps {
-                dir(WORK_DIR) {
-                    sh 'terraform apply terraform.tfplan'
-                }
-            }
-        }
-        stage('Get Terraform Outputs') {
-            steps {
-                dir(WORK_DIR) {
-                    sh 'terraform output web-address-nodejs > ./ansible/instance_ip.txt'
-                }
-            }
-        }
-        stage('Install Ansible') {
-            steps {
+                dir(WORK_DIR){
                 sh '''
-                sudo apt-add-repository ppa:ansible/ansible -y
-                sudo apt-get update
-                sudo apt-get install ansible -y
+                terraform apply destroyplan.tfplan
                 '''
+                }
             }
         }
     }
