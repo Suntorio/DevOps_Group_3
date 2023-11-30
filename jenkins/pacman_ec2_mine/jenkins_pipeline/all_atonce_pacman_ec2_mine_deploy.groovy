@@ -32,6 +32,16 @@ pipeline {
                 )
             }
         }
+        
+        stage('Install Ansible') {
+            steps {
+                sh '''
+                sudo apt-add-repository ppa:ansible/ansible -y
+                sudo apt-get update
+                sudo apt-get install ansible -y
+                '''
+            }
+        }
                     
         stage('Terraform Plan') {
             steps {
@@ -73,30 +83,21 @@ pipeline {
         stage('Get Terraform Outputs') {
             steps {
                 dir(WORK_DIR) {
-                    sh 'terraform output web-address-nodejs > ./ansible/instance_ip.txt'
+                    sh 'terraform output web-address-nodejs > ../ansible/instance_ip.txt'
                 }
             }
         }
-        stage('Install Ansible') {
-            steps {
-                sh '''
-                sudo apt-add-repository ppa:ansible/ansible -y
-                sudo apt-get update
-                sudo apt-get install ansible -y
-                '''
-            }
-        }
-        stage('Run Ansible') {
-            steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'access_for_new_node_js_app', keyFileVariable: 'SSH_KEY')]) {
-                    dir(WORK_DIR_ANSIBLE) {
-                    sh '''
-                    sleep 120
-                    ansible-playbook -i instance_ip.txt instance-docker-setup.yaml -u ubuntu --private-key=$SSH_KEY -e 'ansible_ssh_common_args="-o StrictHostKeyChecking=no"'
-                    '''
-                    }
-                }
-            }
-        }
+        // stage('Run Ansible') {
+        //     steps {
+        //         withCredentials([sshUserPrivateKey(credentialsId: 'access_for_new_node_js_app', keyFileVariable: 'SSH_KEY')]) {
+        //             dir(WORK_DIR_ANSIBLE) {
+        //             sh '''
+        //             sleep 120
+        //             ansible-playbook -i instance_ip.txt instance-docker-setup.yaml -u ubuntu --private-key=$SSH_KEY -e 'ansible_ssh_common_args="-o StrictHostKeyChecking=no"'
+        //             '''
+        //             }
+        //         }
+        //     }
+        // }
     }
 }
