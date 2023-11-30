@@ -2,7 +2,7 @@
 
 Follow these steps to set up and run Pacman on a Minikube cluster:
 
-1. **Start Minikube**
+1. **Start Minikube** $ minikube start
 
 2. **Set Kubernetes Context**
 Ensure you are in the proper Kubernetes cluster:
