@@ -27,7 +27,7 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /home/aleks/Documents/PASV_DevOps/MyGitHub/DevOps_Group_3/Docker/pacman/mongo-init-db # need folder mongo-init-db in the same folder as docker-compose.yml
+      device: $PWD/mongo-init-db # need folder mongo-init-db in the same folder as docker-compose.yml
       o: bind
 networks:
   default:
