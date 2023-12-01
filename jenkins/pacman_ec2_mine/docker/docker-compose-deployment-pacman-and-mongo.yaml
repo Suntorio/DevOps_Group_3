@@ -27,7 +27,7 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: $PWD/mongo-init-db # need folder mongo-init-db in the same folder as docker-compose.yml
+      device: $PWD/mongo-init-db # need folder mongo-init-db in the same folder as docker-compose.yaml
       o: bind
 networks:
   default:

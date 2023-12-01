@@ -1,79 +1,132 @@
 ---
-- name: Update and install packages
+- name: Install Docker, Docker Compose, and Start Pacman App
   hosts: all
-  become: true
-  become_method: sudo
+  become: yes
   vars:
-    required_packages:
-      - python3-pip
-      - python3
-      - nano
-      - git
-      - curl
-      - build-essential
-      - awscli
-      - docker
-
-    homebrew_path: /usr/local/bin/brew
-    environment_path: /etc/environment
-    new_path: "/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin"
-
+    non_root_user: ubuntu  # Replace with your non-root username
   tasks:
-    # Update and Install Packages
-    - name: Update apt cache
+
+    - name: Update apt and install dependencies
       apt:
         update_cache: yes
-
-    - name: Install required packages
-      package:
-        name: "{{ item }}"
-        state: present
-      loop: "{{ required_packages }}"
-    
-    # Install Ansible via Pip
-    - name: Install Ansible
-      pip:
-        name: ansible
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
         state: present
 
-    # Homebrew Installation
-    - name: Check if Homebrew is already installed
-      stat:
-        path: "{{ homebrew_path }}"
-      register: brew
+    - name: Add Docker’s official GPG key
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
 
-    - name: Install Homebrew
-      become_user: ubuntu
-      script: install-homebrew.sh
-      when: not brew.stat.exists
+    - name: Add Docker repository
+      ansible.builtin.apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
 
-    # Update Environment
-    - name: Check if PATH already contains the new path
-      shell: grep -qF -- "{{ new_path }}" "{{ environment_path }}"
-      register: path_check
-      ignore_errors: yes
+    - name: Update apt and install docker-ce
+      apt:
+        update_cache: yes
+        name: docker-ce
+        state: present
 
-    - name: Fetch the current PATH
-      shell: echo $PATH
-      register: current_path
+    - name: Ensure Docker service is running
+      service:
+        name: docker
+        state: started
+        enabled: yes
+  
+    - name: Install Docker Compose
+      apt:
+        name: docker-compose
+        state: present
 
-    - name: Ensure Homebrew is in PATH
+    - name: Add non-root user to Docker group
+      user:
+        name: "{{ non_root_user }}"
+        group: docker
+        append: yes
+
+    - name: Ensure MongoDB init script directory exists
+      file:
+        path: "/home/{{ non_root_user }}/pacman/mongo-init-db"
+        state: directory
+        owner: "{{ non_root_user }}"
+        group: "{{ non_root_user }}"
+        mode: '0755'
+
+    - name: Create MongoDB init script
+      copy:
+        dest: "/home/{{ non_root_user }}/pacman/mongo-init-db/init-mongo.js"
+        content: |
+          db.getSiblingDB('admin').createUser({
+              user: "admin",
+              pwd: "adminPassword",  // Replace with a secure password
+              roles: [{ role: "userAdminAnyDatabase", db: "admin" }]
+          });
+
+          db.getSiblingDB('pacman').createUser({
+              user: "pacman",
+              pwd: "pacman",  // Replace with a secure password
+              roles: [{ role: "readWrite", db: "pacman" }]
+          });
+
+          db.getSiblingDB('pacman').createCollection("init");
+          db.getSiblingDB('pacman').init.insert({name: "init"});
+
+    - name: Ensure Docker Compose file directory exists
+      file:
+        path: "/home/{{ non_root_user }}/pacman"
+        state: directory
+        owner: "{{ non_root_user }}"
+        group: "{{ non_root_user }}"
+        mode: '0755'
+
+    - name: Create Docker Compose file for Pacman
+      copy:
+        dest: "/home/{{ non_root_user }}/pacman/docker-compose.yaml"
+        content: |
+          version: '3'
+          services:
+            nodejs-app:
+              image: jessehoch/pacman-nodejs-app:latest
+              ports:
+                - "80:8080"  # Map port 8080 of the container to port 8080 on the host
+              environment:
+                MONGO_SERVICE_HOST: mongo
+                MONGO_AUTH_USER: pacman
+                MONGO_AUTH_PWD: pacman
+                MONGO_DATABASE: pacman
+              restart: unless-stopped
+
+            mongo:
+             image: mongo:4.0.4
+             ports:
+               - "27017:27017" # Expose MongoDB on port 27017
+             volumes:
+               - mongo-db:/data/db
+               - ./mongo-init-db/init_user_db.js:/docker-entrypoint-initdb.d/init_user_db.js:ro  # Mount the initialization script directory
+             restart: unless-stopped
+          volumes:
+            mongo-db:
+              driver: local
+            mongo-initdb:
+              driver: local
+              driver_opts:
+                type: none
+                device: /home/ubuntu/pacman/mongo-init-db # need folder mongo-init-db in the same folder as docker-compose.yaml
+                o: bind
+          networks:
+            default:
+              external:
+                name: pacman-network
+    - name: Create Docker network
+      docker_network:
+        name: pacman-network
+        state: present
+    - name: Start Pacman App using Docker Compose
       become: true
-      lineinfile:
-        path: "{{ environment_path }}"
-        line: "PATH={{ new_path }}:{{ current_path.stdout }}"
-        create: yes
-      when: path_check.rc != 0
-
-    - name: Reload PATH
-      become_user: ubuntu
-      shell: . "{{ environment_path }}"
-      when: path_check.rc != 0
-
-    - name: install tfenv
-      become_user: ubuntu
-      shell: brew install tfenv
-
-    - name: install terraform latest
-      become_user: ubuntu
-      shell: tfenv install latest && tfenv use latest
+      become_user: "{{ non_root_user }}"
+      command: docker-compose -f /home/{{ non_root_user }}/pacman/docker-compose.yaml up -d
