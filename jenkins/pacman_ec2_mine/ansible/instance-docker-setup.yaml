@@ -122,10 +122,12 @@
             default:
               external:
                 name: pacman-network
+                
     - name: Create Docker network
       docker_network:
         name: pacman-network
         state: present
+        
     - name: Start Pacman App using Docker Compose
       become: true
       become_user: "{{ non_root_user }}"
