@@ -1,7 +1,7 @@
 ---
 - name: Install Docker, Docker Compose, and Start Pacman App
   hosts: all
-  become: yes
+  become: no
   vars:
     non_root_user: ubuntu  # Replace with your non-root username
   tasks:
@@ -75,6 +75,9 @@
 
           db.getSiblingDB('pacman').createCollection("init");
           db.getSiblingDB('pacman').init.insert({name: "init"});
+      mode: '0755'
+      owner: "{{ non_root_user }}"
+      group: "{{ non_root_user }}"
 
     - name: Ensure Docker Compose file directory exists
       file:
@@ -122,12 +125,14 @@
             default:
               external:
                 name: pacman-network
-                
+      mode: '0755'
+      owner: "{{ non_root_user }}"
+      group: "{{ non_root_user }}"        
     - name: Create Docker network
       docker_network:
         name: pacman-network
         state: present
-        
+
     - name: Start Pacman App using Docker Compose
       become: true
       become_user: "{{ non_root_user }}"
