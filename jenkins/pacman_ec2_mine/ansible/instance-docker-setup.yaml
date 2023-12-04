@@ -125,9 +125,9 @@
             default:
               external:
                 name: pacman-network
-        mode: '0755'
-        owner: "{{ non_root_user }}"
-        group: "{{ non_root_user }}"        
+        # mode: '0755'
+        # owner: "{{ non_root_user }}"
+        # group: "{{ non_root_user }}"        
     - name: Create Docker network
       docker_network:
         name: pacman-network
@@ -136,4 +136,4 @@
     - name: Start Pacman App using Docker Compose
       become: true
       become_user: "{{ non_root_user }}"
-      command: docker-compose -f /home/{{ non_root_user }}/pacman/docker-compose.yaml up -d
+      command: sudo docker-compose -f /home/{{ non_root_user }}/pacman/docker-compose.yaml up -d
