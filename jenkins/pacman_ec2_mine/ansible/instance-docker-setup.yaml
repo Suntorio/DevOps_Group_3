@@ -1,7 +1,7 @@
 ---
 - name: Install Docker, Docker Compose, and Start Pacman App
   hosts: all
-  become: true
+  become: true # give a user admin privileges
   vars:
     non_root_user: ubuntu  # Replace with your non-root username
   tasks:
