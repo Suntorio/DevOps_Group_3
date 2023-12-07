@@ -3,7 +3,6 @@ locals {
   allowed_ingress_ports = [22, 80, 443]
 }
 
-
 resource "aws_security_group" "web-sg" {
   name = "${random_pet.sg.id}-sg"
 
