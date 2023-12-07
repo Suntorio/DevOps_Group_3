@@ -31,7 +31,7 @@ pipeline {
                               doGenerateSubmoduleConfigurations: false,
                               extensions: [[
                                   $class: 'SparseCheckoutPaths', 
-                                  sparseCheckoutPaths: [[path: 'WORK_DIR']]
+                                  sparseCheckoutPaths: [[path: WORK_DIR]]
                               ]],
                               userRemoteConfigs: [[
                                   url: 'https://github.com/Suntorio/DevOps_Group_3.git'
