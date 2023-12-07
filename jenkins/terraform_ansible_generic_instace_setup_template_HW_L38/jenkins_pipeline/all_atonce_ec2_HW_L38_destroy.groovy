@@ -1,14 +1,14 @@
 pipeline {
     agent any
 
-    triggers {
-        // Polls SCM periodically but the schedule is ignored if a webhook is set up
-        githubPush()
-        pollSCM('H * * * *')
-    }
-    parameters {
-        string(name: 'ACTION', defaultValue: 'proceed', description: 'Action to take')
-    }
+    // triggers {
+    //     // Polls SCM periodically but the schedule is ignored if a webhook is set up
+    //     githubPush()
+    //     pollSCM('H * * * *')
+    // }
+    // parameters {
+    //     string(name: 'ACTION', defaultValue: 'proceed', description: 'Action to take')
+    // }
     tools {
         terraform 'tf1.6'
     }
@@ -22,15 +22,32 @@ pipeline {
         }
 
       stages {
-        stage('Clone Git repo') {
+        stage('Sparse Checkout') {
             steps {
-                git(
-                    branch: 'master', 
-                    url: 'https://github.com/Suntorio/DevOps_Group_3.git', 
-                    credentialsId: 'access_to_git'
-                )
+                script {
+                    checkout([$class: 'GitSCM', 
+                              branches: [[name: 'master']],
+                              doGenerateSubmoduleConfigurations: false,
+                              extensions: [[
+                                  $class: 'SparseCheckoutPaths', 
+                                  sparseCheckoutPaths: [[path: WORK_DIR]]
+                              ]],
+                              userRemoteConfigs: [[
+                                  url: 'https://github.com/Suntorio/DevOps_Group_3.git'
+                              ]]
+                    ])
+                }
             }
         }
+        // stage('Clone Git repo') {
+        //     steps {
+        //         git(
+        //             branch: 'master', 
+        //             url: 'https://github.com/Suntorio/DevOps_Group_3.git', 
+        //             credentialsId: 'access_to_git'
+        //         )
+        //     }
+        // }
         stage('Terraform Plan') {
             steps {
                 dir(WORK_DIR) {
