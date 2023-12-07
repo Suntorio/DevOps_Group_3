@@ -23,15 +23,33 @@ pipeline {
     }
 
     stages {
-        stage('Clone Git repo') {
+        stage('Sparse Checkout') {
             steps {
-                git(
-                    branch: 'master', 
-                    url: 'https://github.com/Suntorio/DevOps_Group_3.git', 
-                    credentialsId: 'access_to_git'
-                )
+                script {
+                    checkout([$class: 'GitSCM', 
+                              branches: [[name: 'master']],
+                              doGenerateSubmoduleConfigurations: false,
+                              extensions: [[
+                                  $class: 'SparseCheckoutPaths', 
+                                  sparseCheckoutPaths: [[path: 'WORK_DIR']]
+                              ]],
+                              userRemoteConfigs: [[
+                                  url: 'https://github.com/Suntorio/DevOps_Group_3.git'
+                              ]]
+                    ])
+                }
             }
         }
+
+        // stage('Clone Git repo') {
+        //     steps {
+        //         git(
+        //             branch: 'master', 
+        //             url: 'https://github.com/Suntorio/DevOps_Group_3.git', 
+        //             credentialsId: 'access_to_git'
+        //         )
+        //     }
+        // }
         // stage('Install Ansible') {
         //     steps {
         //         sh '''
