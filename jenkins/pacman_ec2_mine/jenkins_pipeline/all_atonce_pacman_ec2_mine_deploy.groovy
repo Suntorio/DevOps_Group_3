@@ -32,7 +32,6 @@ pipeline {
                 )
             }
         }
-        
         stage('Install Ansible') {
             steps {
                 sh '''
@@ -42,7 +41,6 @@ pipeline {
                 '''
             }
         }
-                    
         stage('Terraform Plan') {
             steps {
                 dir(WORK_DIR) {
