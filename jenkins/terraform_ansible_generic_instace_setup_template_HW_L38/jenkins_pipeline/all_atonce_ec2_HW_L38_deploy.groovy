@@ -1,14 +1,14 @@
 pipeline {
     agent any
 
-    triggers {
-        // Polls SCM periodically but the schedule is ignored if a webhook is set up
-        githubPush()
-        pollSCM('H * * * *')
-    }
-    parameters {
-        string(name: 'ACTION', defaultValue: 'proceed', description: 'Action to take')
-    }
+    // triggers {
+    //     // Polls SCM periodically but the schedule is ignored if a webhook is set up
+    //     githubPush()
+    //     pollSCM('H * * * *')
+    // }
+    // parameters {
+    //     string(name: 'ACTION', defaultValue: 'proceed', description: 'Action to take')
+    // }
     tools {
         terraform 'tf1.6'
     }
