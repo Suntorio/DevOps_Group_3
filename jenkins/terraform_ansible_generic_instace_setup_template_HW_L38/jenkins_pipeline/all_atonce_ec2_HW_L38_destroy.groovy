@@ -18,7 +18,7 @@ pipeline {
         PREVIOUS_STAGE_OUTPUT = ''
         
         //My test variables
-        WORK_DIR = 'jenkins/terraform_ansible_generic_instace_setup_template_HW_L38'
+        TF_WORK_DIR = 'jenkins/terraform_ansible_generic_instace_setup_template_HW_L38'
         }
 
       stages {
@@ -30,7 +30,7 @@ pipeline {
                               doGenerateSubmoduleConfigurations: false,
                               extensions: [[
                                   $class: 'SparseCheckoutPaths', 
-                                  sparseCheckoutPaths: [[path: WORK_DIR]]
+                                  sparseCheckoutPaths: [[path: TF_WORK_DIR]]
                               ]],
                               userRemoteConfigs: [[
                                   url: 'https://github.com/Suntorio/DevOps_Group_3.git'
@@ -50,7 +50,7 @@ pipeline {
         // }
         stage('Terraform Plan') {
             steps {
-                dir(WORK_DIR) {
+                dir(TF_WORK_DIR) {
                     sh '''
                     echo "yes" | terraform init
                     terraform plan -destroy -out=destroyplan.tfplan
@@ -80,7 +80,7 @@ pipeline {
         }
         stage('Terraform Apply Destroy') {
             steps {
-                dir(WORK_DIR){
+                dir(TF_WORK_DIR){
                 sh '''
                 terraform apply destroyplan.tfplan
                 '''
