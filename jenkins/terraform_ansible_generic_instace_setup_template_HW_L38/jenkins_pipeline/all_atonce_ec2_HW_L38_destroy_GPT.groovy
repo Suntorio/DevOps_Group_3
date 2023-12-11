@@ -7,7 +7,7 @@ pipeline {
 
     environment {
         TF_VERSION = '1.6.3'  // Replace with your Terraform version
-        TF_WORKING_DIR = 'jenkins/terraform_ansible_generic_instace_setup_template_HW_L38'  // Replace with the path to your Terraform scripts
+        TF_WORK_DIR = 'jenkins/terraform_ansible_generic_instace_setup_template_HW_L38'  // Replace with the path to your Terraform scripts
     }
 
      stages {
@@ -16,7 +16,7 @@ pipeline {
                 script {
                     // Install the required version of Terraform
                     sh "terraform --version"
-                    dir(TF_WORKING_DIR) {
+                    dir(TF_WORK_DIR) {
                         sh "terraform init -input=false -lock=false"
                     }
                 }
@@ -30,7 +30,7 @@ pipeline {
                     input message: 'Do you really want to destroy the infrastructure?', ok: 'Yes, destroy it.'
 
                     // Execute Terraform destroy
-                    dir(TF_WORKING_DIR) {
+                    dir(TF_WORK_DIR) {
                         sh "terraform destroy -auto-approve"
                     }
                 }
