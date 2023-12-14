@@ -40,25 +40,6 @@ pipeline {
                 }
             }
         }
-
-        // stage('Clone Git repo') {
-        //     steps {
-        //         git(
-        //             branch: 'master', 
-        //             url: 'https://github.com/Suntorio/DevOps_Group_3.git', 
-        //             credentialsId: 'access_to_git'
-        //         )
-        //     }
-        // }
-        // stage('Install Ansible') {
-        //     steps {
-        //         sh '''
-        //         sudo apt-add-repository ppa:ansible/ansible -y
-        //         sudo apt-get update
-        //         sudo apt-get install ansible -y
-        //         '''
-        //     }
-        // }
         stage('Terraform Plan') {
             steps {
                 dir(TF_WORK_DIR) {
