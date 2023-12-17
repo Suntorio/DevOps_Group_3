@@ -44,7 +44,7 @@ pipeline {
             steps {
                 dir(TF_WORK_DIR) {
                     sh '''
-                    echo "yes" | terraform init -reconfigure
+                    echo "yes" | terraform init
                     terraform plan -out=terraform.tfplan
                     '''
                     script {
