@@ -39,16 +39,7 @@ pipeline {
                 }
             }
         }
-        // stage('Clone Git repo') {
-        //     steps {
-        //         git(
-        //             branch: 'master', 
-        //             url: 'https://github.com/Suntorio/DevOps_Group_3.git', 
-        //             credentialsId: 'access_to_git'
-        //         )
-        //     }
-        // }
-        stage('Terraform Plan') {
+          stage('Terraform Plan') {
             steps {
                 dir(TF_WORK_DIR) {
                     sh '''
