@@ -59,16 +59,6 @@ pipeline {
                 echo "Output from the Previous Stage: ${env.PREVIOUS_STAGE_OUTPUT}"
                 // Ask for the input to proceed or abort the build
                 script {
-                    //     def userInput = input(
-                    //         id: 'userInput', 
-                    //         message: 'Choose to proceed or abort the build:', 
-                    //         parameters: [choice(name: 'Proceed?', choices: ['proceed', 'abort'], description: 'Proceed or Abort')]
-                    //     )
-                    //     if (userInput == 'abort') {
-                    //         error('Aborting the build.')
-                    //     }
-                    // }
-                    // Prompt for confirmation before destroying resources
                     input message: 'Do you want to deploy the infrastructure?', ok: 'Yes, deploy it.'
                 }
             }
