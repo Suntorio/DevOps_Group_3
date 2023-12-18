@@ -15,7 +15,11 @@ dynamic "ingress" {
       cidr_blocks = ["0.0.0.0/0"]
     }
   }
-  egress {
+ingress {
+    protocol    = "ICMP"               #ICMP from my local PC
+    cidr_blocks = ["172.89.184.11/32"]
+  }
+egress {
     from_port   = 0
     to_port     = 65000
     protocol    = "tcp"
