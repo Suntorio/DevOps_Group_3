@@ -19,7 +19,7 @@ pipeline {
                                   sparseCheckoutPaths: [[path: 'projects/k3s_cluster_aws/cluster_init/']]
                               ]],
                               userRemoteConfigs: [[
-                                  url: 'https://github.com/OleksiiPasichnyk/Terraform.git'
+                                  url: 'https://github.com/Suntorio/DevOps_Group_3.git'
                               ]]
                     ])
                 }
