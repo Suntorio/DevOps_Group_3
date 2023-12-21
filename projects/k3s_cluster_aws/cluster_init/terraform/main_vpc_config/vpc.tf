@@ -40,7 +40,8 @@ resource "aws_subnet" "k3s_private_subnet" {
 
 # Allocate an Elastic IP for the NAT Gateway
 resource "aws_eip" "k3s_nat_eip" {
-  vpc = true
+  #vpc = true
+  domain = "vpc"
 }
 
 # Create a NAT Gateway
