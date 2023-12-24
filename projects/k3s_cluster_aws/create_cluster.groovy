@@ -70,6 +70,8 @@ pipeline {
         stage('Terraform Apply - Master Node') {
             steps {
                 sh '''
+                sudo apt-get update
+                sudo apt-get install jq -y
                 cd ./projects/k3s_cluster_aws/cluster_init/terraform/master_node_config
                 terraform apply -input=false terraform.tfplan
                 terraform output -json k3s_master_instance_private_ip | jq -r 'if type == "array" then .[] else . end' > ../../ansible/master_ip.txt
