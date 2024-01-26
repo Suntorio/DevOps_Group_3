@@ -12,14 +12,14 @@ pipeline {
             steps {
                 script {
                     checkout([$class: 'GitSCM', 
-                              branches: [[name: 'main']],
+                              branches: [[name: 'master']],
                               doGenerateSubmoduleConfigurations: false,
                               extensions: [[
                                   $class: 'SparseCheckoutPaths', 
                                   sparseCheckoutPaths: [[path: 'projects/k3s_cluster_aws/cluster_init/']]
                               ]],
                               userRemoteConfigs: [[
-                                  url: 'https://github.com/OleksiiPasichnyk/Terraform.git'
+                                  url: 'https://github.com/Suntorio/DevOps_Group_3.git'
                               ]]
                     ])
                 }
@@ -32,14 +32,6 @@ pipeline {
                 terraform init -input=false
                 terraform plan -destroy -out=terraform_destroy.tfplan
                 '''
-            }
-        }
-        stage('Approval for Destroy Worker Nodes') {
-            steps {
-                input(
-                    message: 'Review the destroy plan. Proceed with destroy?',
-                    ok: 'Proceed'
-                )
             }
         }
         stage('Terraform Apply Destroy Worker Nodes') {
@@ -59,14 +51,6 @@ pipeline {
                 '''
             }
         }
-        stage('Approval for Destroy Master Node(s)') {
-            steps {
-                input(
-                    message: 'Review the destroy plan. Proceed with destroy?',
-                    ok: 'Proceed'
-                )
-            }
-        }
         stage('Terraform Apply Destroy Master Node(s)') {
             steps {
                 sh '''
@@ -82,14 +66,6 @@ pipeline {
                 terraform init -input=false
                 terraform plan -destroy -out=terraform_destroy.tfplan
                 '''
-            }
-        }
-        stage('Approval for Destroy VPC') {
-            steps {
-                input(
-                    message: 'Review the destroy plan. Proceed with destroy?',
-                    ok: 'Proceed'
-                )
             }
         }
         stage('Terraform Apply Destroy VPC') {

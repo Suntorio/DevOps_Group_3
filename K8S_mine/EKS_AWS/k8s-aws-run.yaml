@@ -8,11 +8,11 @@ metadata:
   region: us-east-1
 
 nodeGroups:
-  - name: ng1-public
+  - name: ng1-workers
     instanceType: t3.small
-    instanceName: EKS-inst
+    instanceName: EKS-inst-1
     desiredCapacity: 2
-  - name: ng2-private
+  - name: ng2-workers
     instanceType: t3.small
+    instanceName: EKS-inst-2
     desiredCapacity: 2
-    privateNetworking: true
