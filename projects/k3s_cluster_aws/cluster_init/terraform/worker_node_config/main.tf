@@ -10,7 +10,7 @@ terraform {
     }
   }
   backend "s3" {
-    bucket = "terraform-state-oleksii"
+    bucket = "terraform-state-test-my-cloud-aleks"
     key    = "k3s_worker/infra_setup.tfstate"
     region = "us-east-1"
   }

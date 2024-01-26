@@ -16,25 +16,13 @@ pipeline {
                               doGenerateSubmoduleConfigurations: false,
                               extensions: [[
                                   $class: 'SparseCheckoutPaths', 
-                                  sparseCheckoutPaths: [[path: 'projects/k3s_cluster_aws/']]
+                                  sparseCheckoutPaths: [[path: 'projects/k3s_cluster_aws/cluster_init/']]
                               ]],
                               userRemoteConfigs: [[
                                   url: 'https://github.com/Suntorio/DevOps_Group_3.git'
                               ]]
                     ])
                 }
-            }
-        }   
-        stage('Install JQ, kubectl and Ansible') {
-            steps {
-                sh '''
-                sudo apt-get update
-                sudo apt-get install -y jq apt-transport-https ca-certificates curl
-                sudo curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-                echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee -a /etc/apt/sources.list.d/kubernetes.list
-                sudo apt-get update
-                sudo apt-get install -y kubectl ansible
-                '''
             }
         }
         stage('Terraform Plan - Main VPC') {
@@ -44,6 +32,14 @@ pipeline {
                 terraform init -input=false
                 terraform plan -out=terraform.tfplan
                 '''
+            }
+        }
+        stage('Approval - Main VPC') {
+            steps {
+                input(
+                    message: 'Review the main VPC plan. Proceed with apply?',
+                    ok: 'Proceed'
+                )
             }
         }
         stage('Terraform Apply - Main VPC') {
@@ -63,9 +59,19 @@ pipeline {
                 '''
             }
         }
+        stage('Approval - Master Node') {
+            steps {
+                input(
+                    message: 'Review the master node plan. Proceed with apply?',
+                    ok: 'Proceed'
+                )
+            }
+        }
         stage('Terraform Apply - Master Node') {
             steps {
                 sh '''
+                sudo apt-get update
+                sudo apt-get install jq -y
                 cd ./projects/k3s_cluster_aws/cluster_init/terraform/master_node_config
                 terraform apply -input=false terraform.tfplan
                 terraform output -json k3s_master_instance_private_ip | jq -r 'if type == "array" then .[] else . end' > ../../ansible/master_ip.txt
@@ -82,22 +88,30 @@ pipeline {
                 '''
             }
         }
+        stage('Approval - Worker Nodes') {
+            steps {
+                input(
+                    message: 'Review the worker nodes plan. Proceed with apply?',
+                    ok: 'Proceed'
+                )
+            }
+        }
         stage('Terraform Apply - Worker Nodes') {
             steps {
                 sh '''
                 cd ./projects/k3s_cluster_aws/cluster_init/terraform/worker_node_config
                 terraform apply -input=false terraform.tfplan
+                sleep 0
+                terraform output -json k3s_workers_instance_private_ip | jq -r '.[]' > ../../ansible/worker_ip.txt
                 '''
             }
         }
-        stage('Terraform Apply - Worker Nodes IP outputs') {
+        stage('Install Ansible') {
             steps {
                 sh '''
-                sleep 120
-                cd ./projects/k3s_cluster_aws/cluster_init/terraform/worker_node_config
-                terraform plan -out=terraform.tfplan
-                terraform apply -input=false terraform.tfplan
-                terraform output -json k3s_workers_instance_private_ip | jq -r '.[]' > ../../ansible/worker_ip.txt
+                sudo apt-add-repository ppa:ansible/ansible -y
+                sudo apt-get update
+                sudo apt-get install ansible -y
                 '''
             }
         }
@@ -112,35 +126,5 @@ pipeline {
                 }
             }
         }
-        stage('Install ingress and pacman in k3s') {
-    steps {
-        script {
-            sh '''
-            cd ./projects/k3s_cluster_aws/cluster_init/aws_ingress_setup
-            kubectl apply -f 1.metallb.yaml
-            sleep 60
-            kubectl apply -f 2.nginx-ingress.yaml
-            '''
-        }
-        script {
-            sh '''
-            cd ./projects/k3s_cluster_aws/cluster_entities/pacman
-            kubectl apply -f mongo-deployment.yaml
-            kubectl apply -f packman-deployment.yaml
-            '''
-            }
-        }
-    }
-
-        // stage('Create Route53 Record') {
-        //     steps {
-        //         sh '''
-        //         cd ./projects/k3s_cluster_aws/cluster_init/terraform/route53_record
-        //         terraform init -input=false
-        //         terraform plan -out=terraform.tfplan
-        //         terraform apply -input=false terraform.tfplan
-        //         '''
-        //     }
-        // }
     }
 }
