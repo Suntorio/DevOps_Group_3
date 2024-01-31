@@ -1,7 +1,7 @@
 resource "aws_launch_template" "k3s_worker" {
   name_prefix   = "k3s-worker-"
   image_id      = "ami-0fc5d935ebf8bc3bc"
-  instance_type = "t3a.medium"
+  instance_type = "t2.small"
   key_name      = "jenkins-ansible"
 
   vpc_security_group_ids = [data.aws_security_group.k3s_sg.id] 
