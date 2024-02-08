@@ -13,7 +13,7 @@ After you ran two commands in the terminal, you can go and open your OpenLens an
      kubectl apply -f mongo-deployment.yaml (running DB first of all)
      kubectl apply -f packman-deployment.yaml
      kubens (run it to see namespaces)
-     kubens pacman(choose namespace pacman)
+     kubens pacman (choose namespace pacman)
      kubectl get pods (run to see what pods you have)
      # kubectl get pods -A (OPTIONAL, to check how many pods total do we have)
      Go to the OpenLens, network-service(you can see that we got one more servece, pacman. Type of service is LB, because it’s
