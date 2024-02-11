@@ -23,3 +23,20 @@ After you ran two commands in the terminal, you can go and open your OpenLens an
 9. run command: curl insert(public IPv4 DNS). If you see some information like “head”, means it is working.
 10. If you do not have Route 53 do next: in pacman-deployment.yaml in line 22 put Master node public IPv4 DNS (example how it’s looks like:ec2-54-146-202-253.compute-1.amazonaws.com). Next, you need to apply this, so run this command at pacman namespace in the terminal: kubectl apply -f packman-deployment.yaml
 11. run command: curl insert(public IPv4 DNS). If you see some information like “head”, means it is working.
+
+# Add 2nd game to the cluster:
+
+Oleksii Pasichnyk
+:smiling_imp:  10 minutes ago
+хм, если тестировать локально то да, если в кластер в авс выгружаешь то нет.
+у aws нет доступа к локальному имейджу, надо имейдж залить в докерхаб.
+чтобы залить в докерхаб надо
+создать аккаунт
+создать там репозиторий
+если репозиторий паблик, а тебе лучше его делать паблик тогда пароли  для скачивания не нужны, если прайват тогда надо будет еще логин и пароль сетапить, прайват бесплатный только один
+
+Oleksii Pasichnyk
+:smiling_imp:  9 minutes ago
+есть и другие варианты но это то с чем я промаялся 2 месяца - где хранить имейджы и как сделать локальное хранилище для кластера, в результате докер хаб самое эффективное решение и простое
+
+п.с. правильно путь прописать надо еще будет, дойдешь до этого этапа пиши
