@@ -1,0 +1,98 @@
+# Namespace Definition
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: spaceinv
+---
+# Ingress Definition
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: spaceinv
+  namespace: spaceinv
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: ec2-52-87-230-6.compute-1.amazonaws.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: space-inv
+                port:
+                  number: 8080
+# TLS disabled for now need to setup cert-manager                  
+#   tls:
+#     - hosts:
+#         - spaceinv.paxel.ca
+#       secretName: spaceinv.paxel.ca-tls
+
+---
+
+# Service Definition for Space-Inv Application
+apiVersion: v1
+kind: Service
+metadata:
+  name: space-inv
+  namespace: spaceinv
+  labels:
+    name: space-inv
+spec:
+  selector:
+    name: space-inv
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: LoadBalancer
+
+---
+
+# Deployment Definition for Space-Inv Application
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: space-inv
+  namespace: spaceinv
+  labels:
+    name: space-inv
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: space-inv
+  template:
+    metadata:
+      labels:
+        name: space-inv
+    spec:
+      containers:
+        - name: space-inv
+          image: docker.io/suntorio/space-inv:latest #HAS CHANGED TO MINE DOCKER IMAGE
+          ports:
+            - name: http-server
+              containerPort: 8080
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "8080"
+            - name: MONGO_SERVICE_HOST
+              value: "mongo.spaceinv.svc.cluster.local"
+            - name: MONGO_AUTH_USER
+              value: "spaceinv"
+            - name: MONGO_AUTH_PWD
+              value: "spaceinv"
+            - name: MONGO_DATABASE
+              value: "spaceinv"
+            - name: MONGO_COLLECTION 
+              value: "spaceinv"
+            # Additional environment variables can be added here as required
