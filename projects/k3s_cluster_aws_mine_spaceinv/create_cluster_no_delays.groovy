@@ -16,7 +16,7 @@ pipeline {
                               doGenerateSubmoduleConfigurations: false,
                               extensions: [[
                                   $class: 'SparseCheckoutPaths', 
-                                  sparseCheckoutPaths: [[path: 'projects/k3s_cluster_aws/']]
+                                  sparseCheckoutPaths: [[path: 'projects/k3s_cluster_aws_mine_spaceinv/']]
                               ]],
                               userRemoteConfigs: [[
                                   url: 'https://github.com/Suntorio/DevOps_Group_3.git'
@@ -40,7 +40,7 @@ pipeline {
         stage('Terraform Plan - Main VPC') {
             steps {
                 sh '''
-                cd ./projects/k3s_cluster_aws/cluster_init/terraform/main_vpc_config
+                cd ./projects/k3s_cluster_aws_mine_spaceinv/cluster_init/terraform/main_vpc_config
                 terraform init -input=false
                 terraform plan -out=terraform.tfplan
                 '''
@@ -49,7 +49,7 @@ pipeline {
         stage('Terraform Apply - Main VPC') {
             steps {
                 sh '''
-                cd ./projects/k3s_cluster_aws/cluster_init/terraform/main_vpc_config
+                cd ./projects/k3s_cluster_aws_mine_spaceinv/cluster_init/terraform/main_vpc_config
                 terraform apply -input=false terraform.tfplan
                 '''
             }
@@ -57,7 +57,7 @@ pipeline {
         stage('Terraform Plan - Master Node') {
             steps {
                 sh '''
-                cd ./projects/k3s_cluster_aws/cluster_init/terraform/master_node_config
+                cd ./projects/k3s_cluster_aws_mine_spaceinv/cluster_init/terraform/master_node_config
                 terraform init -input=false
                 terraform plan -out=terraform.tfplan
                 '''
@@ -66,7 +66,7 @@ pipeline {
         stage('Terraform Apply - Master Node') {
             steps {
                 sh '''
-                cd ./projects/k3s_cluster_aws/cluster_init/terraform/master_node_config
+                cd ./projects/k3s_cluster_aws_mine_spaceinv/cluster_init/terraform/master_node_config
                 terraform apply -input=false terraform.tfplan
                 terraform output -json k3s_master_instance_private_ip | jq -r 'if type == "array" then .[] else . end' > ../../ansible/master_ip.txt
                 terraform output -json k3s_master_instance_public_ip | jq -r 'if type == "array" then .[] else . end' > ../../ansible/master_ip_public.txt
@@ -76,7 +76,7 @@ pipeline {
         stage('Terraform Plan - Worker Nodes') {
             steps {
                 sh '''
-                cd ./projects/k3s_cluster_aws/cluster_init/terraform/worker_node_config
+                cd ./projects/k3s_cluster_aws_mine_spaceinv/cluster_init/terraform/worker_node_config
                 terraform init -input=false
                 terraform plan -out=terraform.tfplan
                 '''
@@ -85,7 +85,7 @@ pipeline {
         stage('Terraform Apply - Worker Nodes') {
             steps {
                 sh '''
-                cd ./projects/k3s_cluster_aws/cluster_init/terraform/worker_node_config
+                cd ./projects/k3s_cluster_aws_mine_spaceinv/cluster_init/terraform/worker_node_config
                 terraform apply -input=false terraform.tfplan
                 '''
             }
@@ -94,7 +94,7 @@ pipeline {
             steps {
                 sh '''
                 sleep 120
-                cd ./projects/k3s_cluster_aws/cluster_init/terraform/worker_node_config
+                cd ./projects/k3s_cluster_aws_mine_spaceinv/cluster_init/terraform/worker_node_config
                 terraform plan -out=terraform.tfplan
                 terraform apply -input=false terraform.tfplan
                 terraform output -json k3s_workers_instance_private_ip | jq -r '.[]' > ../../ansible/worker_ip.txt
@@ -105,7 +105,7 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'access_for_new_node_js_app', keyFileVariable: 'SSH_KEY')]) {
                 sh '''
-                cd ./projects/k3s_cluster_aws/cluster_init/ansible
+                cd ./projects/k3s_cluster_aws_mine_spaceinv/cluster_init/ansible
                 ansible-playbook -i master_ip.txt master_setup.yml -u ubuntu --private-key=$SSH_KEY -e 'ansible_ssh_common_args="-o StrictHostKeyChecking=no"'
                 ansible-playbook -i worker_ip.txt worker_setup.yml -u ubuntu --private-key=$SSH_KEY -e 'ansible_ssh_common_args="-o StrictHostKeyChecking=no"'
                 '''
@@ -135,7 +135,7 @@ pipeline {
         // stage('Create Route53 Record') {
         //     steps {
         //         sh '''
-        //         cd ./projects/k3s_cluster_aws/cluster_init/terraform/route53_record
+        //         cd ./projects/k3s_cluster_aws_mine_spaceinv/cluster_init/terraform/route53_record
         //         terraform init -input=false
         //         terraform plan -out=terraform.tfplan
         //         terraform apply -input=false terraform.tfplan
