@@ -24,7 +24,7 @@ After you ran two commands in the terminal, you can go and open your OpenLens an
      # kubectl get pods -A (OPTIONAL, to check how many pods total do we have)
      Go to the OpenLens, network-service(you can see that we got one more servece, pacman. Type of service is LB, because it’s
      serviced by metallb)
-#  8.  Create Route 53 in AWS(only if yiu have your own IP)
+#  8.  Create Route 53 in AWS(only if you have your own IP)
 #  Copy master node IP NEXT go to serch area and type Route 53 NEXT click on HoustedZone #  NEXT click on Craete Record NEXT insert master IP into value section.
 9. run command: curl insert(public IPv4 DNS). If you see some information like “head”, means it is working.
 10. If you do not have Route 53 do next: in pacman-deployment.yaml in line 22 put Master node public IPv4 DNS (example how it’s looks like:ec2-54-146-202-253.compute-1.amazonaws.com). Next, you need to apply this, so run this command at pacman namespace in the terminal: kubectl apply -f packman-deployment.yaml
