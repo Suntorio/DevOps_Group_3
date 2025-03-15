@@ -1,1 +1,12 @@
-Deploy instance 
+1.  Deploy an instance with Terraform
+
+2.  Ansible is an open-source automation tool used for configuration management, application deployment, and task automation.
+    It simplifies IT automation by using a declarative approach, allowing users to define what needs to be done rather than how to do it.
+
+Example:
+*Create an inventory file (inventory.ini):
+[web_servers]
+server1 ansible_host=192.168.1.10 ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa
+
+*Run the playbook
+$ ansible-playbook -i inventory.ini nginx_setup.yml
