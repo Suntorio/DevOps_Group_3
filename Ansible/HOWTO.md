@@ -1,0 +1,1 @@
+$ ansible-playbook playbook.yaml -i hosts --private-key=~/Documents/PASV_DevOps/SSH-Keys/key-test-lab-server.pem -u ubuntu

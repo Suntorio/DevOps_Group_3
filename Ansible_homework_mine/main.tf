@@ -7,11 +7,11 @@ terraform {
     random = {
       source  = "hashicorp/random"
       version = "~>3.5"
-    }
+          }
   }
   backend "s3" {
     bucket    = "terraform-state-test-my-cloud-aleks"
-    key       = "terraform_my_infra.tfstate"
+    key       = "terraform_my_infra_ahm.tfstate"
     region    = "us-east-1"
   }
   required_version = ">= 1.3"
@@ -40,9 +40,21 @@ resource "aws_security_group" "web-sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+ ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+   ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
   egress {
     from_port   = 0
-    to_port     = 22
+    to_port     = 65000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -53,14 +65,15 @@ resource "aws_instance" "test" {
   instance_type          = "t2.micro" //instance type
   vpc_security_group_ids = [aws_security_group.web-sg.id]
   key_name               = "key-homework-lab-server" //new key
-  tags = {
-    Name = "Homework_insta_Lesson_14_TF"
+    tags = {
+    Name = "Homework_insta_Lesson_14_TF_SUNTORIO"
   }
 }
 
 output "web-address_test_instance_public_dns" {
   value = aws_instance.test.public_dns
 }
+
 output "web-address_test_instance_public_ip" {
   value = aws_instance.test.public_ip
 }
@@ -78,10 +91,12 @@ output "caller_arn" {
 output "caller_user" {
   value = data.aws_caller_identity.current.user_id
 }
-resource "null_resource" "generate_inventory" {
-  depends_on = [aws_instance.test]
 
-  provisioner "local-exec" {
-    command = "./generate_inventory.sh"
-  }
-}
+#resource "terraform_data" "generate_inventory" {
+#  depends_on = [aws_instance.test]
+#
+#provisioner "local-exec" {
+#  command = "./generate_inventory_with_clean.sh"
+#  interpreter = ["/bin/bash", "-c"]
+#}
+#}

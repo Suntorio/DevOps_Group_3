@@ -1,10 +1,11 @@
+#The script that take public IP from Terraform output and put it in ansible_inventory.ini  
 #!/bin/bash
 # Define the Ansible inventory file
-INVENTORY_FILE="../Ansible/ansible_inventory.ini"
+#INVENTORY_FILE="../Ansible_homework_mine/ansible_inventory.ini"
+INVENTORY_FILE="../Ansible_homework_mine/hosts"
 
 # Run terraform output to get the instance's public IPs as a space-separated list
 PUBLIC_IPS=$(terraform output -json web-address_test_instance_public_ip | jq -r '. | sub("\""; "")')
-
 
 # Ensure that the "all" group exists in the inventory file
 if ! grep -wq "all" "$INVENTORY_FILE"; then

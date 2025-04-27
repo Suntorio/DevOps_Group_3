@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Define the Ansible inventory file
 INVENTORY_FILE="../Ansible/ansible_inventory.ini"
 

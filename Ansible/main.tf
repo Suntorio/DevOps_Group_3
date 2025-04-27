@@ -83,5 +83,6 @@ resource "null_resource" "generate_inventory" {
 
   provisioner "local-exec" {
     command = "./generate_inventory.sh"
+    interpreter = ["/bin/bash", "-c"]
   }
 }
