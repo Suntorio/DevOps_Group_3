@@ -1,16 +1,9 @@
-<!-- This is comments
-<h1>I left my heart in 37°47′N 122°25′W</h1>
-<h2>US States in TopoJSON · Rendered in SVG with D3.js</h2>
-
-<section id="map" class="map"></section>
--->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>I Left My Heart</title>
-<body style="margin: 0; padding-top: 40px; text-align: center; background: #f9f9f9;">
+<body style="margin: 0; padding-top: 40px; text-align: center; background: #0760a8;">
   <link rel="stylesheet" href="style.css" />
   <script src="https://d3js.org/d3.v3.min.js"></script>
   <script src="https://d3js.org/topojson.v1.min.js"></script>
@@ -23,7 +16,7 @@
 
   <script src="script.js"></script>
 
-  #Youglish widget
+  <!-- #Youglish widget -->
   <!-- <div style="width: 100%; max-width: 400px; height: 250px; overflow: hidden;">
   <a id="yg-widget-0"
      class="youglish-widget"
@@ -37,14 +30,62 @@
   </div>
   <script async src="https://youglish.com/public/emb/widget.js" charset="utf-8"></script> -->
 
-  #Forecast Widget (HTML + iframe)
-  <div style="text-align: center;">
+  <!-- Forecast Widget (HTML + iframe) -->
+  <!-- <div style="text-align: center">
+    <iframe> 
+      src="https://wttr.in/Paris"
+      style="border:bold;width:100%;max-width:915px;height:630px;font-family:monospace;"
+      loading="lazy">
+    </iframe>
+  </div> -->
+
+<!-- <div style="
+  display: flex;
+  justify-content: center;
+  align-items: left;
+  padding: 30px;
+  background: url('https://images.unsplash.com/photo-1613310082486-83276d2a2c93?q=80&w=1935&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D') center/cover no-repeat;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(32, 8, 167, 0.3);
+  ">
+  <iframe
+    src="https://wttr.in/Los_Angeles"
+    style="border: bold; width: 100%; max-width: 915px; height: 630px; border-radius: 10px;"
+    loading="lazy">
+  </iframe>
+</div> -->
+
+<div style="
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #c9d6ff, #e2e2e2);
+  padding: 40px;
+">
+  <div style="
+    backdrop-filter: blur(12px);
+    background-color: rgba(255, 255, 255, 0.25);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  ">
+    <h2 style="
+      text-align: center;
+      font-family: 'Segoe UI', sans-serif;
+      color: #333;
+      margin-bottom: 16px;
+    ">
+      🌤 Los Angeles Weather Forecast
+    </h2>
     <iframe 
       src="https://wttr.in/Los_Angeles"
-      style="border:none;width:100%;max-width:915px;height:630px;font-family:monospace;"
+      style="border: none; width: 100%; max-width: 500px; height: 680px; border-radius: 12px;"
       loading="lazy">
     </iframe>
   </div>
+</div>
 
 </body>
 </html>
