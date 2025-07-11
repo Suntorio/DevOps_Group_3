@@ -1,0 +1,45 @@
+* {
+    box-sizing: border-box;
+  }
+  html,
+  input {
+    font-family: "Segoe UI Web Light", "Segoe UI Light", "Segoe UI Web Regular",
+      "Segoe UI", "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue",
+      Helvetica, Arial, sans-serif;
+  }
+  html {
+    -ms-text-size-adjust: none;
+  }
+  body {
+    margin: 1.5em;
+    background: #272727;
+    color: #ecf0f0;
+  }
+  h1 {
+    font-size: 3.25em;
+    margin: 0;
+    font-weight: normal;
+  }
+  h2 {
+    font-size: 1.2em;
+    text-transform: uppercase;
+    font-weight: normal;
+  }
+  a {
+    color: #55acee;
+  }
+  
+  /* topology */
+  
+  .states {
+    stroke: #fff;
+    stroke-width: 1px;
+    stroke-linejoin: round;
+  
+    -webkit-transition: fill 1s;
+    transition: fill 1s;
+  }
+  
+  .states.CA {
+    fill: #ff8586;
+  }

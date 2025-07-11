@@ -1,0 +1,153 @@
+---
+- name: Configure Apache Web Server on Ubuntu 22.04
+  hosts: all  # Replace with your server's hostname or IP address
+  become: true
+  become_method: sudo
+  become_user: root
+  
+  vars:
+    ssl_cert_path: /etc/apache2/ssl/apache-selfsigned.crt
+    ssl_key_path: /etc/apache2/ssl/apache-selfsigned.key
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Apache, OpenSSL and AWS CLI # Added AWS CLI installation 
+      apt:
+        name: [apache2, openssl, awscli]
+        state: present
+
+    - name: Start and enable Apache service
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+
+    - name: Copy multiple files to Apache directory
+      template:
+        #src: "Dad's_Jokes/{{ item }}"
+        src: "Map/{{ item }}"
+        dest: "/var/www/html/{{ item }}"
+      loop:
+        - index.html
+        - script.js
+        - style.css
+      notify: Restart Apache
+
+    - name: Get external IP address using AWS metadata
+      command: "curl -s http://169.254.169.254/latest/meta-data/public-ipv4"
+      register: external_ip
+      changed_when: false  # Mark the task as non-changing
+
+    - name: Display external IP address
+      debug:
+        var: external_ip.stdout
+
+    - name: Add external IP to Apache website
+      lineinfile:
+        path: /var/www/html/index.html
+        line: "<p>External IP Address: {{ external_ip.stdout }}</p>"
+      notify: Restart Apache
+
+    #Configure SSL-certificates
+    - name: Enable SSL module
+      command: a2enmod ssl
+      notify: Restart Apache
+
+    - name: Create SSL directory
+      file:
+        path: /etc/apache2/ssl
+        state: directory
+        mode: '0755'
+
+    - name: Generate self-signed certificate
+      command: >
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048
+        -keyout {{ ssl_key_path }}
+        -out {{ ssl_cert_path }}
+        -subj "/C=US/ST=NA/L=NA/O=NA/OU=NA/CN=localhost"
+      args:
+        creates: "{{ ssl_cert_path }}"
+
+    - name: Create SSL virtual host config
+      copy:
+        dest: /etc/apache2/sites-available/default-ssl.conf
+        content: |
+          <IfModule mod_ssl.c>
+            <VirtualHost _default_:443>
+              ServerAdmin admin@localhost
+              DocumentRoot /var/www/html
+
+              SSLEngine on
+              SSLCertificateFile      {{ ssl_cert_path }}
+              SSLCertificateKeyFile   {{ ssl_key_path }}
+
+              ErrorLog ${APACHE_LOG_DIR}/error.log
+              CustomLog ${APACHE_LOG_DIR}/access.log combined
+            </VirtualHost>
+          </IfModule>
+      notify: Restart Apache
+
+    - name: Enable SSL site
+      command: a2ensite default-ssl
+      notify: Restart Apache
+
+  handlers:
+    - name: Restart Apache
+      service:
+        name: apache2
+        state: restarted
+   
+
+#Dynamic A-Record Updater on AWS Route 53
+- name: Update Route 53 A-record with EC2 public IP
+  hosts: all
+  gather_facts: false
+
+  vars:
+    hosted_zone_id: "Z05114633R8I6QJ512GC"  # Replace with your Hosted Zone ID
+    record_name: "alex-tech.us."            # Replace with your domain
+    ttl: 300
+
+  tasks:
+    - name: Get EC2 public IP from instance metadata
+      uri:
+        url: http://169.254.169.254/latest/meta-data/public-ipv4
+        return_content: yes
+      register: public_ip
+
+    - name: Show detected IP for debug
+      debug:
+        msg: "Public IP is {{ public_ip.content }}"
+
+    - name: Create change-batch.json with real values
+      copy:
+        dest: /tmp/change-batch.json
+        content: |
+          {
+            "Comment": "Update A-record with EC2 public IP",
+            "Changes": [{
+              "Action": "UPSERT",
+              "ResourceRecordSet": {
+                "Name": "{{ record_name }}",
+                "Type": "A",
+                "TTL": {{ ttl }},
+                "ResourceRecords": [{
+                  "Value": "{{ public_ip.content }}"
+                }]
+              }
+            }]
+          }
+
+    - name: Run AWS CLI to update Route 53 A-record
+      command: >
+        aws route53 change-resource-record-sets
+        --hosted-zone-id {{ hosted_zone_id }}
+        --change-batch file:///tmp/change-batch.json
+
+    - name: Show output of CLI command
+      debug:
+        var: command_result
+      when: command_result is defined

@@ -1,0 +1,67 @@
+---
+- name: Install Apache with Self-Signed SSL
+  hosts: all
+  become: true
+
+  vars:
+    ssl_cert_path: /etc/apache2/ssl/apache-selfsigned.crt
+    ssl_key_path: /etc/apache2/ssl/apache-selfsigned.key
+
+  tasks:
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Apache and OpenSSL
+      apt:
+        name: [apache2, openssl]
+        state: present
+
+    - name: Enable SSL module
+      command: a2enmod ssl
+      notify: Restart Apache
+
+    - name: Create SSL directory
+      file:
+        path: /etc/apache2/ssl
+        state: directory
+        mode: '0755'
+
+    - name: Generate self-signed certificate
+      command: >
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048
+        -keyout {{ ssl_key_path }}
+        -out {{ ssl_cert_path }}
+        -subj "/C=US/ST=NA/L=NA/O=NA/OU=NA/CN=localhost"
+      args:
+        creates: "{{ ssl_cert_path }}"
+
+    - name: Create SSL virtual host config
+      copy:
+        dest: /etc/apache2/sites-available/default-ssl.conf
+        content: |
+          <IfModule mod_ssl.c>
+            <VirtualHost _default_:443>
+              ServerAdmin admin@localhost
+              DocumentRoot /var/www/html
+
+              SSLEngine on
+              SSLCertificateFile      {{ ssl_cert_path }}
+              SSLCertificateKeyFile   {{ ssl_key_path }}
+
+              ErrorLog ${APACHE_LOG_DIR}/error.log
+              CustomLog ${APACHE_LOG_DIR}/access.log combined
+            </VirtualHost>
+          </IfModule>
+      notify: Restart Apache
+
+    - name: Enable SSL site
+      command: a2ensite default-ssl
+      notify: Restart Apache
+
+  handlers:
+    - name: Restart Apache
+      service:
+        name: apache2
+        state: restarted
