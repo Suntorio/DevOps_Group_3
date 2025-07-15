@@ -21,3 +21,5 @@ IF WE CREATE ansible.cfg then:
 $ ansible-playbook playbook.yaml
 
 04/16/2025 SUMMARY: WORKING APACHE SERVER WEBSITE WITH HTTPS (INSECURE)!
+
+$$$ All files and folders on S3 Bucket are JUST LINKS to S3 Bucket storage! $$$
