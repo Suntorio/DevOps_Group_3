@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AlexTheGreat Random Idioms Website</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      /*background-color: #f2f2f2;*/
+      background-color: #e6f6f8;
+      text-align: center;
+    }
+    .idiom-box {
+      background: #fff;
+      /*background: #caf2f3;*/
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 1800px;
+      margin-bottom: 20px;
+    }
+    .phrase {
+      font-size: 5rem;
+      font-weight: bold;
+      color: #333;
+    }
+    .meaning {
+      margin-top: 10px;
+      font-size: 2.5rem;
+      color: #555;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+    }
+    .controls button {
+      padding: 8px 44px;
+      font-size: 2.5rem;
+      cursor: pointer;
+      background-color: transparent;
+      color: whitesmoke;
+      border: none;
+      border-radius: 8px;
+      transition: background-color 0.2s ease;
+    }
+    .controls button:hover {
+      background-color: #dddada;
+    }
+  </style>
+</head>
+<body>
+
+  <div style="position: fixed; top: 0; width: 100%; background: #222; color: white; text-align: center; padding: 10px; z-index: 1000;">
+    🚀 Welcome to AlexTheGreat's Random Idiom Site!
+  </div>
+
+  <!--<h1>Let's take the idioms to remember!</h1>
+  <h1 id="main-title" class="banner" style="color: navy;" title="Click to learn"; font-size: 80px;> Let’s take the idioms to remember!</h1>
+  <h1 style="font-size: 80px; line-height: 1.4;">Let’s take the idioms to remember!</h1> -->
+
+
+  <div class="idiom-box">
+    <div class="phrase" id="phrase">Loading...</div>
+    <div class="meaning" id="meaning"></div>
+  </div>
+
+<!-- Your comment here -->
+
+  <div class="controls">
+    <!-- <button onclick="previous()" title="Previous">⏮️</button> -->
+    <button id="toggleButton" onclick="toggle()" title="Pause">⏸️</button>
+    <button onclick="next()" title="Next">⏭️</button>
+  </div>
+
+  <script>
+    let idioms = [];
+    let index = 0;
+    let intervalId = null;
+    let isRunning = true;
+
+    async function loadIdioms() {
+      const response = await fetch('idioms.json');
+      idioms = await response.json();
+      showIdiom();
+      intervalId = setInterval(next, 9000);
+    }
+
+    function showIdiom() {
+      if (idioms.length === 0) return;
+      const idiom = idioms[Math.floor(Math.random() * idioms.length)];
+      document.getElementById('phrase').textContent = idiom.phrase;
+      document.getElementById('meaning').textContent = idiom.meaning;
+    }
+
+    function next() {
+      index = (index + 1) % idioms.length;
+      showIdiom();
+    }
+
+    function toggle() {
+      const button = document.getElementById('toggleButton');
+      if (isRunning) {
+        clearInterval(intervalId);
+        intervalId = null;
+        button.textContent = "▶️";
+        button.title = "Play";
+      } else {
+        intervalId = setInterval(next, 9000);
+        button.textContent = "⏸️";
+        button.title = "Pause";
+      }
+      isRunning = !isRunning;
+    }
+
+    loadIdioms();
+  </script>
+</body>
+</html>

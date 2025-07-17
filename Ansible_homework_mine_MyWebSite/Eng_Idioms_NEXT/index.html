@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Random Idiom Generator by AlexTheGreat</title>
+
+  <h1>Mr.Lapporte's Conversation Class, Summer of 2025</h1>
+ 
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+      background-color: #a7b1e0;
+      text-align: center;
+      padding: 20px;
+    }
+    #idiom {
+      font-size: 5em;
+      margin-bottom: 10px;
+    }
+    #meaning {
+      font-size: 2.5em;
+      color: #555;
+      margin-bottom: 30px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="idiom">Press NEXT to get an idiom</div>
+  <div id="meaning"></div>
+  <button onclick="showRandomIdiom()">NEXT</button>
+
+  <script>
+    let idioms = [];
+
+    async function loadIdioms() {
+      const response = await fetch('idioms.json');
+      idioms = await response.json();
+    }
+
+    function showRandomIdiom() {
+      if (idioms.length === 0) {
+        document.getElementById('idiom').innerText = 'Loading idioms...';
+        document.getElementById('meaning').innerText = '';
+        return;
+      }
+      const randomIndex = Math.floor(Math.random() * idioms.length);
+      const idiom = idioms[randomIndex];
+      document.getElementById('idiom').innerText = idiom.phrase;
+      document.getElementById('meaning').innerText = idiom.meaning;
+    }
+
+    loadIdioms();
+  </script>
+
+</body>
+</html>
