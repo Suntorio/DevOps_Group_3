@@ -23,3 +23,23 @@ $ ansible-playbook playbook.yaml
 04/16/2025 SUMMARY: WORKING APACHE SERVER WEBSITE WITH HTTPS (INSECURE)!
 
 $$$ All files and folders on S3 Bucket are JUST LINKS to S3 Bucket storage! $$$
+
+Let's Encrypt Certification
+1. $ sudo apt update
+2. $ sudo apt install certbot python3-certbot-apache
+3. $ sudo certbot --apache
+Account registered.
+Please enter the domain name(s) you would like on your certificate (comma and/or
+space separated) (Enter 'c' to cancel): alex-tech.us
+Requesting a certificate for alex-tech.us
+
+Successfully received certificate.
+Certificate is saved at: /etc/letsencrypt/live/alex-tech.us/fullchain.pem
+Key is saved at:         /etc/letsencrypt/live/alex-tech.us/privkey.pem
+This certificate expires on 2025-10-21.
+These files will be updated when the certificate renews.
+Certbot has set up a scheduled task to automatically renew this certificate in the background.
+
+Deploying certificate
+Successfully deployed certificate for alex-tech.us to /etc/apache2/sites-available/000-default-le-ssl.conf
+Congratulations! You have successfully enabled HTTPS on https://alex-tech.us

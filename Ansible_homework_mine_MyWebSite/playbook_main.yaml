@@ -14,9 +14,9 @@
       apt:
         update_cache: yes
 
-    - name: Install Apache, OpenSSL and AWS CLI # Added AWS CLI installation 
+    - name: Install Apache, OpenSSL, AWS CLI, Certbot and Apache plugin
       apt:
-        name: [apache2, openssl, awscli]
+        name: [apache2, openssl, awscli, certbot, python3-certbot-apache]
         state: present
 
     - name: Start and enable Apache service
@@ -35,14 +35,19 @@
         - idioms.json
       notify: Restart Apache
 
-    - name: Get external IP address using AWS metadata
-      command: "curl -s http://169.254.169.254/latest/meta-data/public-ipv4"
-      register: external_ip
-      changed_when: false  # Mark the task as non-changing
+    # Install Let's Encrypt SSL for Apache
+    # - name: Run Certbot with Apache plugin
+    #   command: certbot --apache --non-interactive --agree-tos --redirect -m aleks23.la.usa@gmail.com -d alex-tech.us
+    #   notify: Restart Apache
 
-    - name: Display external IP address
-      debug:
-        var: external_ip.stdout
+    # - name: Get external IP address using AWS metadata
+    #   command: "curl -s http://169.254.169.254/latest/meta-data/public-ipv4"
+    #   register: external_ip
+    #   changed_when: false  # Mark the task as non-changing
+
+    # - name: Display external IP address
+    #   debug:
+    #     var: external_ip.stdout
 
     # - name: Add external IP to Apache website
     #   lineinfile:
@@ -99,7 +104,6 @@
         name: apache2
         state: restarted
    
-
 #Dynamic A-Record Updater on AWS Route 53
 - name: Update Route 53 A-record with EC2 public IP
   hosts: all
