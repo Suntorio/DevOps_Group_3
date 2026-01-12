@@ -1,3 +1,4 @@
 # Ignore a folder
 /.terraform/
 hosts
+/Hugo_Web-server/mysite/content/gallery/
