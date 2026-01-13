@@ -1,39 +1,66 @@
 ---
-- name: Configure Apache Web Server on Ubuntu 22.04
+- name: Configure Nginx Web Server with Hugo Static Site Generator on Ubuntu 22.04
   hosts: all  # Replace with your server's hostname or IP address
   become: true
   become_method: sudo
   become_user: root
   
-  vars:
-    ssl_cert_path: /etc/apache2/ssl/apache-selfsigned.crt
-    ssl_key_path: /etc/apache2/ssl/apache-selfsigned.key
+  # vars:
+  #   ssl_cert_path: /etc/apache2/ssl/apache-selfsigned.crt
+  #   ssl_key_path: /etc/apache2/ssl/apache-selfsigned.key
 
   tasks:
     - name: Update apt cache
       apt:
         update_cache: yes
 
-    - name: Install Apache, OpenSSL, AWS CLI, Certbot and Apache plugin
+    - name: Install Nginx, OpenSSL, AWS CLI, Certbot
       apt:
-        name: [apache2, openssl, awscli, certbot, python3-certbot-apache]
+        name: [nginx, openssl, awscli, certbot]
         state: present
+    
+    - name: Install Hugo
+      snap:
+        name: [--edge hugo]
+        state: present
+    
+    - name: Create new web site with Hugo
+      command: hugo new site mysite #create [mysite] folder in home directory
 
-    - name: Start and enable Apache service
+    - name: Remove default NGINX site
+      file:
+        path: /var/www/html
+        state: absent
+
+    - name: Deploy Hugo site
+      copy:
+        src: ../../../../hugo/public/
+        dest: /var/www/html
+        owner: www-data
+        group: www-data
+        mode: "0755"
+
+    - name: Start Nginx
       service:
-        name: apache2
+        name: nginx
         state: started
-        enabled: yes
+        enabled: yes    
+        
+    # - name: Start and enable Apache service
+    #   service:
+    #     name: apache2
+    #     state: started
+    #     enabled: yes
 
-    - name: Copy multiple files to Apache directory
-      template:
-        #src: "Dad's_Jokes/{{ item }}"
-        src: "Eng_Idioms_AUTO/{{ item }}"
-        dest: "/var/www/html/{{ item }}"
-      loop:
-        - index.html
-        - idioms.json
-      notify: Restart Apache
+    # - name: Copy multiple files to Apache directory
+    #   template:
+    #     #src: "Dad's_Jokes/{{ item }}"
+    #     src: "Eng_Idioms_AUTO/{{ item }}"
+    #     dest: "/var/www/html/{{ item }}"
+    #   loop:
+    #     - index.html
+    #     - idioms.json
+    #   notify: Restart Apache
 
     # Install Let's Encrypt SSL for Apache
     # - name: Run Certbot with Apache plugin
@@ -56,53 +83,53 @@
     #   notify: Restart Apache
 
     #Configure SSL-certificates
-    - name: Enable SSL module
-      command: a2enmod ssl
-      notify: Restart Apache
+    # - name: Enable SSL module
+    #   command: a2enmod ssl
+    #   notify: Restart Apache
 
-    - name: Create SSL directory
-      file:
-        path: /etc/apache2/ssl
-        state: directory
-        mode: '0755'
+    # - name: Create SSL directory
+    #   file:
+    #     path: /etc/apache2/ssl
+    #     state: directory
+    #     mode: '0755'
 
-    - name: Generate self-signed certificate
-      command: >
-        openssl req -x509 -nodes -days 365 -newkey rsa:2048
-        -keyout {{ ssl_key_path }}
-        -out {{ ssl_cert_path }}
-        -subj "/C=US/ST=NA/L=NA/O=NA/OU=NA/CN=localhost"
-      args:
-        creates: "{{ ssl_cert_path }}"
+    # - name: Generate self-signed certificate
+    #   command: >
+    #     openssl req -x509 -nodes -days 365 -newkey rsa:2048
+    #     -keyout {{ ssl_key_path }}
+    #     -out {{ ssl_cert_path }}
+    #     -subj "/C=US/ST=NA/L=NA/O=NA/OU=NA/CN=localhost"
+    #   args:
+    #     creates: "{{ ssl_cert_path }}"
 
-    - name: Create SSL virtual host config
-      copy:
-        dest: /etc/apache2/sites-available/default-ssl.conf
-        content: |
-          <IfModule mod_ssl.c>
-            <VirtualHost _default_:443>
-              ServerAdmin admin@localhost
-              DocumentRoot /var/www/html
+    # - name: Create SSL virtual host config
+    #   copy:
+    #     dest: /etc/apache2/sites-available/default-ssl.conf
+    #     content: |
+    #       <IfModule mod_ssl.c>
+    #         <VirtualHost _default_:443>
+    #           ServerAdmin admin@localhost
+    #           DocumentRoot /var/www/html
 
-              SSLEngine on
-              SSLCertificateFile      {{ ssl_cert_path }}
-              SSLCertificateKeyFile   {{ ssl_key_path }}
+    #           SSLEngine on
+    #           SSLCertificateFile      {{ ssl_cert_path }}
+    #           SSLCertificateKeyFile   {{ ssl_key_path }}
 
-              ErrorLog ${APACHE_LOG_DIR}/error.log
-              CustomLog ${APACHE_LOG_DIR}/access.log combined
-            </VirtualHost>
-          </IfModule>
-      notify: Restart Apache
+    #           ErrorLog ${APACHE_LOG_DIR}/error.log
+    #           CustomLog ${APACHE_LOG_DIR}/access.log combined
+    #         </VirtualHost>
+    #       </IfModule>
+    #   notify: Restart Apache
 
-    - name: Enable SSL site
-      command: a2ensite default-ssl
-      notify: Restart Apache
+  #   - name: Enable SSL site
+  #     command: a2ensite default-ssl
+  #     notify: Restart Apache
 
-  handlers:
-    - name: Restart Apache
-      service:
-        name: apache2
-        state: restarted
+  # handlers:
+  #   - name: Restart Apache
+  #     service:
+  #       name: apache2
+  #       state: restarted
    
 #Dynamic A-Record Updater on AWS Route 53
 - name: Update Route 53 A-record with EC2 public IP

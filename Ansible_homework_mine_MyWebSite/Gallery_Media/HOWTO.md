@@ -1,3 +1,12 @@
+MY GOAL:
+a. To build my private web site with gallery (photos and videos are about 50GB)
+b. I want to do it with DevOps best practices based on AWS
+c. My media files are going to be uploaded to S3 Bucket
+d. I'm going to use Terraform and Ansible
+e. Nginx or Apache web-server will be used on my EC2 instance
+
+What best solution would you recommend for me?   
+
 1.  Deploy an instance with Terraform
 
 $ terraform init
@@ -43,5 +52,3 @@ Certbot has set up a scheduled task to automatically renew this certificate in t
 Deploying certificate
 Successfully deployed certificate for alex-tech.us to /etc/apache2/sites-available/000-default-le-ssl.conf
 Congratulations! You have successfully enabled HTTPS on https://alex-tech.us
-
-GITHUB TEST!

@@ -152,13 +152,13 @@ resource "aws_iam_instance_profile" "route53_update_profile" {
 #}
 
 resource "aws_instance" "test" {
-  ami                    = "ami-053b0d53c279acc90" // Ubuntu server 22.04
+  ami                    = "ami-0ecb62995f68bb549" // Ubuntu server 24.04 LTS
   instance_type          = "t2.micro" //instance type
   vpc_security_group_ids = [aws_security_group.web-sg.id]
   iam_instance_profile   = aws_iam_instance_profile.route53_update_profile.name
   key_name               = "key-homework-lab-server" //new key
     tags = {
-    Name = "alex-tech.us_TF_MyWebSite"
+    Name = "alex-tech.us_TF_MyWebSite_Gallery"
   }
 }
 
