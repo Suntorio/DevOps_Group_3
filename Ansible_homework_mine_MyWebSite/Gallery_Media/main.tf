@@ -40,16 +40,22 @@ resource "aws_security_group" "web-sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
- ingress {
+  ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-   ingress {
+  ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  ingress {
+    from_port   = 8  # This is the ICMP Type, not a port
+    to_port     = 0  # This is the ICMP Code
+    protocol    = "icmp"
     cidr_blocks = ["0.0.0.0/0"]
   }
   egress {
@@ -150,7 +156,7 @@ resource "aws_instance" "web_server" {
     }
 }
 
-# Request a new Elastic IP (100.48.149.1)
+# Request a new Elastic IP (changes after EC2 rebuilding!)
 resource "aws_eip" "my_static_ip" {
   domain = "vpc"
 }
@@ -160,6 +166,26 @@ resource "aws_eip_association" "eip_assoc" {
   instance_id   = aws_instance.web_server.id
   allocation_id = aws_eip.my_static_ip.id
 }
+
+
+# # 2. Your EC2 Instance (The "Disposable" part)
+# resource "aws_instance" "app_server" {
+#   ami           = "ami-0c7217cdde317cfec"
+#   instance_type = "t2.micro"
+
+#   tags = {
+#     Name = "Disposable-Server"
+#   }
+# }
+
+# 3. The "Glue" (The Association)
+# This resource is the only thing that gets destroyed and recreated
+# to point your permanent IP at your new server.
+# resource "aws_eip_association" "eip_assoc" {
+#   instance_id   = aws_instance.web_server.id
+#   allocation_id = aws_eip.my_static_ip.id
+# }
+
 
 # output "web-address_test_instance_public_dns" {
 #   value = aws_instance.test.public_dns

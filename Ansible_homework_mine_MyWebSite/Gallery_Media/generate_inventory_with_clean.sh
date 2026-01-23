@@ -2,11 +2,12 @@
 #!/bin/bash
 # Define the Ansible inventory file
 #INVENTORY_FILE="../Ansible_homework_mine/ansible_inventory.ini"
-INVENTORY_FILE="../Ansible_homework_mine_MyWebSite/hosts"
+INVENTORY_FILE="../Gallery_Media/hosts"
 
 # Run terraform output to get the instance's public IPs as a space-separated list
 #PUBLIC_IPS=$(terraform output -json web-address_test_instance_public_ip | jq -r '. | sub("\""; "")')
-PUBLIC_IPS=$(terraform output -raw web-address_test_instance_public_ip)
+#PUBLIC_IPS=$(terraform output -raw web-address_test_instance_public_ip)
+PUBLIC_IPS=$(terraform output -raw public_ip)
 
   echo "Made [$INVENTORY_FILE] empty"
   echo -n > $INVENTORY_FILE           # make the inventory file empty

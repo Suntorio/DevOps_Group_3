@@ -1,5 +1,5 @@
 ---
-- name: Configure Nginx Web Server with Hugo Static Site Generator on Ubuntu 22.04
+- name: Configure Nginx Web Server with FANCY on Ubuntu 24.04
   hosts: all  # Replace with your server's hostname or IP address
   become: true
   become_method: sudo
@@ -14,10 +14,28 @@
       apt:
         update_cache: yes
 
-    - name: Install Nginx, OpenSSL, AWS CLI, Certbot
+    - name: Install Nginx, OpenSSL, UnZip, Certbot
       apt:
-        name: [nginx, openssl, awscli, certbot]
+        name: [nginx, openssl, unzip, certbot]
         state: present
+    
+    - name: Download AWS CLI v2 installer
+      get_url:
+        url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        dest: /tmp/awscliv2.zip
+        mode: '0644'
+
+    - name: Unzip AWS CLI installer
+      unarchive:
+        src: /tmp/awscliv2.zip
+        dest: /tmp
+        remote_src: yes
+        creates: /tmp/aws/install
+
+    - name: Install AWS CLI v2
+      command: /tmp/aws/install
+      args:
+        creates: /usr/local/bin/aws
     
     # - name: Remove default NGINX site
     #   file:
@@ -128,15 +146,29 @@
     ttl: 300
 
   tasks:
-    - name: Get EC2 public IP from instance metadata
+  # Amazon recently made IMDSv2 the default for all new EC2 instances and Amazon Linux 2023
+    - name: Get IMDSv2 Token
+      uri:
+        url: http://169.254.169.254/latest/api/token
+        method: PUT
+        headers:
+          X-aws-ec2-metadata-token-ttl-seconds: "21600"
+        return_content: true  # <--- CRITICAL FIX: Captures the token string
+      register: token_response
+
+    - name: Get EC2 public IP using token
       uri:
         url: http://169.254.169.254/latest/meta-data/public-ipv4
-        return_content: yes
+        method: GET
+        headers:
+          # Use the token we just captured, and trim whitespace just in case
+          X-aws-ec2-metadata-token: "{{ token_response.content | trim }}"
+        return_content: true  # <--- Capture the IP address in the response
       register: public_ip
 
-    - name: Show detected IP for debug
+    - name: Print Public IP (Debug)
       debug:
-        msg: "Public IP is {{ public_ip.content }}"
+        msg: "The Public IP is: {{ public_ip.content }}"
 
     - name: Create change-batch.json with real values
       copy:
