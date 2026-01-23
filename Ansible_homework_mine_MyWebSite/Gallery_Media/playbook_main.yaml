@@ -19,26 +19,18 @@
         name: [nginx, openssl, awscli, certbot]
         state: present
     
-    - name: Install Hugo
-      snap:
-        name: [--edge hugo]
-        state: present
-    
-    - name: Create new web site with Hugo
-      command: hugo new site mysite #create [mysite] folder in home directory
+    # - name: Remove default NGINX site
+    #   file:
+    #     path: /var/www/html
+    #     state: absent
 
-    - name: Remove default NGINX site
-      file:
-        path: /var/www/html
-        state: absent
-
-    - name: Deploy Hugo site
-      copy:
-        src: ../../../../hugo/public/
-        dest: /var/www/html
-        owner: www-data
-        group: www-data
-        mode: "0755"
+    # - name: Deploy Hugo site
+    #   copy:
+    #     src: ../../../../hugo/public/
+    #     dest: /var/www/html
+    #     owner: www-data
+    #     group: www-data
+    #     mode: "0755"
 
     - name: Start Nginx
       service:
@@ -46,12 +38,6 @@
         state: started
         enabled: yes    
         
-    # - name: Start and enable Apache service
-    #   service:
-    #     name: apache2
-    #     state: started
-    #     enabled: yes
-
     # - name: Copy multiple files to Apache directory
     #   template:
     #     #src: "Dad's_Jokes/{{ item }}"

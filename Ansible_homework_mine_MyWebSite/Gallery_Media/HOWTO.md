@@ -1,18 +1,22 @@
 MY GOAL:
 a. To build my private web site with gallery (photos and videos are about 50GB)
 b. I want to do it with DevOps best practices based on AWS
+b1. What is CloudFront?
 c. My media files are going to be uploaded to S3 Bucket
 d. I'm going to use Terraform and Ansible
-e. Nginx or Apache web-server will be used on my EC2 instance
+e. Nginx web-server will be used on my EC2 instance
+f. Elastic IP:
+    * Running vs. Stopped: There is no longer a price "discount" for having the IP attached to a running instance. You pay the $0.005/hour regardless of the instance state.
+    * EBS Costs: Remember that while your instance is stopped, you are still being charged for the EBS storage (disk) attached to that instance (usually ~$0.08–$0.10 per GB per month for gp3 volumes), in addition to the Elastic IP cost.
+    * Release vs. Stop: If you don't need the static IP while the server is off, you should Disassociate and then Release the IP to stop the charges entirely. Simply stopping the  instance will not stop the IP billing.
 
-What best solution would you recommend for me?   
+Solution:  
 
 1.  Deploy an instance with Terraform
-
-$ terraform init
-$ terraform plan
-$ terraform apply
-
+    * Create an EC2
+    * Request a new Elastic IP  
+    * Assign the Elastic IP to the EC2
+ 
 2.  Ansible is an open-source automation tool used for configuration management, application deployment, and task automation.
     It simplifies IT automation by using a declarative approach, allowing users to define what needs to be done rather than how to do it.
 

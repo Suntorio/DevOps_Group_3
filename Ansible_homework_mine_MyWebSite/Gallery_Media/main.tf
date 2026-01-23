@@ -139,19 +139,7 @@ resource "aws_iam_instance_profile" "route53_update_profile" {
   role = aws_iam_role.route53_update_role.name
 }
 
-# Пример EC2 с этой ролью
-#resource "aws_instance" "my_instance" {
-#  ami           = "ami-053b0d53c279acc90" # Подставь свой AMI ID
-#  instance_type = "t2.micro"
-#
-#  iam_instance_profile = aws_iam_instance_profile.route53_update_profile.name
-#
-#  tags = {
-#    Name = "EC2-With-Route53-Role"
-#  }
-#}
-
-resource "aws_instance" "test" {
+resource "aws_instance" "web_server" {
   ami                    = "ami-0ecb62995f68bb549" // Ubuntu server 24.04 LTS
   instance_type          = "t2.micro" //instance type
   vpc_security_group_ids = [aws_security_group.web-sg.id]
@@ -159,16 +147,27 @@ resource "aws_instance" "test" {
   key_name               = "key-homework-lab-server" //new key
     tags = {
     Name = "alex-tech.us_TF_MyWebSite_Gallery"
-  }
+    }
 }
 
-output "web-address_test_instance_public_dns" {
-  value = aws_instance.test.public_dns
+# Request a new Elastic IP (100.48.149.1)
+resource "aws_eip" "my_static_ip" {
+  domain = "vpc"
 }
 
-output "web-address_test_instance_public_ip" {
-  value = aws_instance.test.public_ip
+# Associate the IP with the Instance
+resource "aws_eip_association" "eip_assoc" {
+  instance_id   = aws_instance.web_server.id
+  allocation_id = aws_eip.my_static_ip.id
 }
+
+# output "web-address_test_instance_public_dns" {
+#   value = aws_instance.test.public_dns
+# }
+
+# output "web-address_test_instance_public_ip" {
+#   value = aws_instance.test.public_ip
+# }
 
 data "aws_caller_identity" "current" {}
 
@@ -182,6 +181,11 @@ output "caller_arn" {
 
 output "caller_user" {
   value = data.aws_caller_identity.current.user_id
+}
+
+# Output the IP address to your EC2
+output "public_ip" {
+  value = aws_eip.my_static_ip.public_ip
 }
 
 #resource "terraform_data" "generate_inventory" {
