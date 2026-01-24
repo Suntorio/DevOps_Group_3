@@ -5,10 +5,6 @@
   become_method: sudo
   become_user: root
   
-  # vars:
-  #   ssl_cert_path: /etc/apache2/ssl/apache-selfsigned.crt
-  #   ssl_key_path: /etc/apache2/ssl/apache-selfsigned.key
-
   tasks:
     - name: Update apt cache
       apt:
@@ -16,7 +12,7 @@
 
     - name: Install Nginx, OpenSSL, UnZip, Certbot
       apt:
-        name: [nginx, openssl, unzip, certbot]
+        name: [nginx, openssl, unzip, certbot, python3-certbot-nginx]
         state: present
     
     - name: Download AWS CLI v2 installer
@@ -54,87 +50,14 @@
       service:
         name: nginx
         state: started
-        enabled: yes    
-        
-    # - name: Copy multiple files to Apache directory
-    #   template:
-    #     #src: "Dad's_Jokes/{{ item }}"
-    #     src: "Eng_Idioms_AUTO/{{ item }}"
-    #     dest: "/var/www/html/{{ item }}"
-    #   loop:
-    #     - index.html
-    #     - idioms.json
-    #   notify: Restart Apache
+        enabled: yes
 
-    # Install Let's Encrypt SSL for Apache
-    # - name: Run Certbot with Apache plugin
-    #   command: certbot --apache --non-interactive --agree-tos --redirect -m aleks23.la.usa@gmail.com -d alex-tech.us
-    #   notify: Restart Apache
+  handlers:
+    - name: Reload NGINX
+      service:
+        name: nginx
+        state: reloaded
 
-    # - name: Get external IP address using AWS metadata
-    #   command: "curl -s http://169.254.169.254/latest/meta-data/public-ipv4"
-    #   register: external_ip
-    #   changed_when: false  # Mark the task as non-changing
-
-    # - name: Display external IP address
-    #   debug:
-    #     var: external_ip.stdout
-
-    # - name: Add external IP to Apache website
-    #   lineinfile:
-    #     path: /var/www/html/index.html
-    #     line: "<p>External IP Address: {{ external_ip.stdout }}</p>"
-    #   notify: Restart Apache
-
-    #Configure SSL-certificates
-    # - name: Enable SSL module
-    #   command: a2enmod ssl
-    #   notify: Restart Apache
-
-    # - name: Create SSL directory
-    #   file:
-    #     path: /etc/apache2/ssl
-    #     state: directory
-    #     mode: '0755'
-
-    # - name: Generate self-signed certificate
-    #   command: >
-    #     openssl req -x509 -nodes -days 365 -newkey rsa:2048
-    #     -keyout {{ ssl_key_path }}
-    #     -out {{ ssl_cert_path }}
-    #     -subj "/C=US/ST=NA/L=NA/O=NA/OU=NA/CN=localhost"
-    #   args:
-    #     creates: "{{ ssl_cert_path }}"
-
-    # - name: Create SSL virtual host config
-    #   copy:
-    #     dest: /etc/apache2/sites-available/default-ssl.conf
-    #     content: |
-    #       <IfModule mod_ssl.c>
-    #         <VirtualHost _default_:443>
-    #           ServerAdmin admin@localhost
-    #           DocumentRoot /var/www/html
-
-    #           SSLEngine on
-    #           SSLCertificateFile      {{ ssl_cert_path }}
-    #           SSLCertificateKeyFile   {{ ssl_key_path }}
-
-    #           ErrorLog ${APACHE_LOG_DIR}/error.log
-    #           CustomLog ${APACHE_LOG_DIR}/access.log combined
-    #         </VirtualHost>
-    #       </IfModule>
-    #   notify: Restart Apache
-
-  #   - name: Enable SSL site
-  #     command: a2ensite default-ssl
-  #     notify: Restart Apache
-
-  # handlers:
-  #   - name: Restart Apache
-  #     service:
-  #       name: apache2
-  #       state: restarted
-   
 #Dynamic A-Record Updater on AWS Route 53
 - name: Update Route 53 A-record with EC2 public IP
   hosts: all
@@ -199,3 +122,83 @@
       debug:
         var: command_result
       when: command_result is defined
+
+# This YAML code assumes you are using Ubuntu/Debian and that your Route 53 DNS is already pointing to this server's IP.
+- name: Setup SSL with Certbot
+  hosts: all
+  become: true
+  become_method: sudo
+  become_user: root
+  
+  vars:
+    domain_name: "alex-tech.us"
+    email_address: "aleks23.la.usa@gmail.com"
+
+  tasks:
+    - name: Create directory alex-tech.us
+      file:
+        path: "/var/www/{{ domain_name }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Copy default Nginx page to the new domain folder
+      copy:
+        src: /var/www/html/index.nginx-debian.html
+        dest: "/var/www/{{ domain_name }}/index.html"
+        remote_src: yes  # <--- Essential: tells Ansible the file is already on the server
+        owner: www-data
+        group: www-data
+        mode: '0644'
+
+    # 3. Create a basic NGINX config so Certbot can find the domain
+    # This replaces the 'default' file with one containing your server_name
+    - name: Create basic NGINX config for domain
+      copy:
+        dest: "/etc/nginx/sites-available/{{ domain_name }}"
+        content: |
+          server {
+              listen 80;
+              server_name {{ domain_name }};
+              root /var/www/{{ domain_name }};
+              index index.html;
+          }
+      notify: Reload NGINX
+
+    # 4. Enable the new config
+    - name: Enable site configuration
+      file:
+        src: "/etc/nginx/sites-available/{{ domain_name }}"
+        dest: "/etc/nginx/sites-enabled/{{ domain_name }}"
+        state: link
+
+    # 5. Remove the default NGINX site to avoid conflicts
+    - name: Remove default NGINX config
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Reload NGINX
+
+    # 6. Flush handlers to ensure NGINX is running with the new server_name
+    - meta: flush_handlers
+
+    # 7. Run Certbot to get the SSL certificate
+    # --non-interactive: Don't wait for user input
+    # --redirect: Automatically update NGINX to force HTTPS
+    - name: Run Certbot NGINX plugin
+      command: >
+        certbot --nginx
+        --non-interactive
+        --agree-tos
+        --email {{ email_address }}
+        -d {{ domain_name }}
+        --redirect
+      args:
+        creates: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+
+  handlers:
+  - name: Reload NGINX
+    service:
+      name: nginx
+      state: reloaded
