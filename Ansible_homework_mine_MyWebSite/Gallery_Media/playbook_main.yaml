@@ -10,9 +10,9 @@
       apt:
         update_cache: yes
 
-    - name: Install Nginx, OpenSSL, UnZip, Certbot
+    - name: Install Nginx, OpenSSL, UnZip, Certbot, S3FS
       apt:
-        name: [nginx, openssl, unzip, certbot, python3-certbot-nginx]
+        name: [nginx, openssl, unzip, certbot, python3-certbot-nginx, s3fs]
         state: present
     
     - name: Download AWS CLI v2 installer
@@ -33,19 +33,6 @@
       args:
         creates: /usr/local/bin/aws
     
-    # - name: Remove default NGINX site
-    #   file:
-    #     path: /var/www/html
-    #     state: absent
-
-    # - name: Deploy Hugo site
-    #   copy:
-    #     src: ../../../../hugo/public/
-    #     dest: /var/www/html
-    #     owner: www-data
-    #     group: www-data
-    #     mode: "0755"
-
     - name: Start Nginx
       service:
         name: nginx
@@ -65,7 +52,7 @@
 
   vars:
     hosted_zone_id: "Z05114633R8I6QJ512GC"  # Replace with your Hosted Zone ID
-    record_name: "alex-tech.us."            # Replace with your domain
+    record_name: "www.alex-tech.us."            # Replace with your domain
     ttl: 300
 
   tasks:
@@ -131,7 +118,7 @@
   become_user: root
   
   vars:
-    domain_name: "alex-tech.us"
+    domain_name: "www.alex-tech.us"
     email_address: "aleks23.la.usa@gmail.com"
 
   tasks:
@@ -154,16 +141,45 @@
 
     # 3. Create a basic NGINX config so Certbot can find the domain
     # This replaces the 'default' file with one containing your server_name
-    - name: Create basic NGINX config for domain
-      copy:
-        dest: "/etc/nginx/sites-available/{{ domain_name }}"
-        content: |
-          server {
-              listen 80;
-              server_name {{ domain_name }};
-              root /var/www/{{ domain_name }};
-              index index.html;
-          }
+    - name: Create NGINX config with Fancyindex and S3 Mount
+      ansible.builtin.copy:
+            dest: "/etc/nginx/sites-available/{{ domain_name }}"
+            content: |
+              server {
+                  listen 80;
+                  server_name {{ domain_name }} www.{{ domain_name }};
+                  root /var/www/{{ domain_name }};
+                  index index.html;
+                  charset utf-8;
+
+                  # 1. Main Website Root
+                  location / {
+                      try_files $uri $uri/ =404;
+                  }
+
+                  # 2. Fancy Media Gallery (The S3 Mounted Folder)
+                  location /fancy-media/ {
+                      # Points to the folder where s3fs is mounted
+                      alias /var/www/{{ domain_name }}/fancy-media/;
+                      
+                      # Enable Fancyindex
+                      fancyindex on;
+                      fancyindex_exact_size off; # Shows KB/MB instead of bytes
+                      fancyindex_localtime on;
+                      
+                      # Paths to the Theme assets cloned via Git
+                      # Adjust these paths if the Git repo structure is different
+                      fancyindex_header "/fancy-theme/Nginx-Fancyindex/header.html";
+                      fancyindex_footer "/fancy-theme/Nginx-Fancyindex/footer.html";
+                      
+                      # Security: Don't show the theme folder itself in the list
+                      fancyindex_ignore "fancy-theme";
+                  }
+
+                  location /fancy-theme/ {
+                      alias /var/www/{{ domain_name }}/fancy-theme/;
+                  }
+              }
       notify: Reload NGINX
 
     # 4. Enable the new config
@@ -196,6 +212,101 @@
         --redirect
       args:
         creates: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+        
+    - name: Install NGINX Fancyindex Module
+      apt:
+        name: libnginx-mod-http-fancyindex
+        state: present
+      become: yes
+
+    # - name: Configure NGINX with Fancyindex
+    #   template:
+    #     src: nginx_config.j2
+    #     dest: /etc/nginx/sites-available/{{ domain_name }}
+    #   notify: Reload NGINX
+
+    - name: Clone Nginx Fancyindex Theme
+      ansible.builtin.git:
+          repo: 'https://github.com/Naereen/Nginx-Fancyindex-Theme.git'
+          dest: "/var/www/{{ domain_name }}/fancy-theme"
+          #version: master  # or 'main' depending on the repo branch
+          update: yes      # Pulls latest changes if the folder already exists
+      become: true
+
+    - name: Set permissions for the theme folder
+      ansible.builtin.file:
+          path: "/var/www/{{ domain_name }}/fancy-theme"
+          state: directory
+          recurse: yes
+          owner: www-data
+          group: www-data
+          mode: '0755'
+
+    - name: Create fancy-media directory
+      ansible.builtin.file:
+        path: "/var/www/{{ domain_name }}/fancy-media"
+        state: directory
+        owner: www-data
+        group: www-data     # "ubuntu" for Setting group to ubuntu allows your rsync to work
+        mode: '0755'        # '775' gives the group (ubuntu) write permissions
+
+    # - name: Mount S3 bucket using IAM Role
+    #   ansible.posix.mount:
+    #         path: "/var/www/{{ domain_name }}/fancy-media"
+    #         src: "alex-tech.us-gallery"
+    #         fstype: fuse.s3fs
+    #         # One long string ensures fstab gets formatted correctly (added 'use_cache=/dev/null' to prevent ANY local saving)
+    #         opts: "_netdev,allow_other,iam_role=auto,endpoint=us-east-1,url=https://s3.us-east-1.amazonaws.com,use_path_request_style,use_cache=/dev/null"
+    #         state: mounted
+
+
+    # - name: Mount S3 bucket (With specific permissions)
+    #   ansible.posix.mount:
+    #     path: "/var/www/{{ domain_name }}/fancy-media"
+    #     src: "alex-tech.us-gallery"
+    #     fstype: fuse.s3fs
+    #     opts: >
+    #       _netdev,
+    #       allow_other,
+    #       iam_role=auto,
+    #       endpoint=us-east-1,
+    #       url=https://s3.us-east-1.amazonaws.com,
+    #       use_path_request_style,
+    #       use_cache=/dev/null,
+    #       umask=0022,      # Sets files to 755 (Readable by everyone, Writable by Owner)
+    #       mp_umask=0022    # Sets the mount point folder itself to 755
+    #     state: mounted
+
+
+
+
+    # # 1. Create a dedicated cache directory
+    # - name: Create s3fs cache directory
+    #   ansible.builtin.file:
+    #     path: /tmp/s3fs_cache
+    #     state: directory
+    #     mode: '0777'  # Wide permissions so s3fs won't complain
+
+    # # 2. Updated Mount Task
+    # - name: Mount S3 bucket with Cache Fix
+    #   ansible.posix.mount:
+    #     path: "/var/www/{{ domain_name }}/fancy-media"
+    #     src: "alex-tech.us-gallery"
+    #     fstype: fuse.s3fs
+    #     # Added 'use_cache=/tmp/s3fs_cache'
+    #     opts: "_netdev,allow_other,iam_role=auto,endpoint=us-east-1,url=https://s3.us-east-1.amazonaws.com,use_path_request_style,umask=0022,use_cache=/tmp/s3fs_cache"
+    #     state: mounted
+
+
+
+    - name: Mount S3 bucket (Final Fix)
+      ansible.posix.mount:
+        path: "/var/www/{{ domain_name }}/fancy-media"
+        src: "alex-tech.us-gallery"
+        fstype: fuse.s3fs
+        # IMPORTANT: No spaces after the commas in this string!
+        opts: "_netdev,allow_other,iam_role=auto,endpoint=us-east-1,url=https://s3.us-east-1.amazonaws.com,use_path_request_style,umask=0022"
+        state: mounted
 
   handlers:
   - name: Reload NGINX
