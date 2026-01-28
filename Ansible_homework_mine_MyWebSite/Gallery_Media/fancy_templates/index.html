@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alex Family Gallery</title>
+    <style>
+        /* Base styles for the full-screen background */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            /* Using your main cover as the background with a dark overlay */
+            background: linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)), 
+                        url('/fancy-media/cover_main.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .cover-link {
+            text-decoration: none;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* The Glass Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px 20px;
+            border-radius: 28px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            text-align: center;
+            /* Responsive Width */
+            width: 90%;
+            max-width: 450px;
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .gallery-title {
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0 0 20px 0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            line-height: 1.2;
+        }
+
+        .enter-button {
+            background: #ffffff;
+            color: #111;
+            padding: 14px 36px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: inline-block;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        /* --- MOBILE ADAPTATION --- */
+        @media (max-width: 600px) {
+            .glass-card {
+                padding: 30px 15px;
+                width: 85%;
+            }
+
+            .gallery-title {
+                font-size: 26px; /* Slightly smaller text for mobile */
+                margin-bottom: 15px;
+            }
+
+            .enter-button {
+                padding: 12px 28px;
+                font-size: 14px;
+                width: 80%; /* Makes button easier to tap on mobile */
+            }
+        }
+
+        /* Active state for touch feedback */
+        .glass-card:active {
+            transform: scale(0.97);
+            background: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <a href="/fancy-media/" class="cover-link">
+        <div class="glass-card">
+            <h1 class="gallery-title">Alex's Family Gallery</h1>
+            <div class="enter-button">Open Gallery</div>
+        </div>
+    </a>
+</div>
+
+</body>
+</html>

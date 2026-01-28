@@ -1,0 +1,270 @@
+</table>
+<script>
+    let mediaList = [];
+    let currentIndex = 0;
+
+function makeThumbnails() {
+    const rows = document.querySelectorAll("#list tbody tr");
+    mediaList = []; 
+
+    // Define your Galleries/Album details here
+    const folderData = {
+        "Video/": "Dashcam video",
+        "LA_Sights/": "Drone footage and cinematic edits",
+        "Big_Bear_2026_Jan/": "Our trip to Big Bear Lake",
+        "Pictures/": "Just a lot of different pictures",
+        "Wall-s/": "Wallpapers",
+        "People/": "People's photo",
+        "Palicamp_2025/": "Roman's trip to Running Springs"
+    };
+
+    // --- NEW LOGIC: SHOW DESCRIPTION AT TOP ---
+    // 1. Get the current folder name from the browser URL
+    const pathSegments = window.location.pathname.split('/').filter(Boolean);
+    const currentFolder = pathSegments.length > 0 ? pathSegments[pathSegments.length - 1] + "/" : "";
+
+    // 2. Check if this folder has a description in your list
+    const titleElement = document.getElementById("gallery-title");
+    if (folderData[currentFolder] && titleElement) {
+        titleElement.innerText = folderData[currentFolder];
+        titleElement.style.display = "block"; // Show the title
+    }
+
+    // CHECK IF WE ARE ON MAIN PAGE (To hide Parent Directory button)
+    // Adjust "/fancy-media/" if your path is different
+    const isRoot = window.location.pathname.replace(/\/$/, '').endsWith('fancy-media') || window.location.pathname === "/";
+
+    rows.forEach((row) => {
+        const cells = row.getElementsByTagName("td");
+        if (cells.length < 3) return;
+
+        const link = cells[0].querySelector("a");
+        const url = link.getAttribute("href");
+        const fileName = link.innerText.trim(); 
+        const isFolder = fileName.endsWith("/");
+
+        // 1. Hide system files
+        const hiddenFiles = ["cover.jpg", "cover_main.jpg", "index.html", "thumbs.db", ".ds_store"];
+        if (hiddenFiles.includes(fileName.toLowerCase())) {
+            row.style.display = "none";
+            return;
+        }
+
+        // 2. PARENT DIRECTORY LOGIC
+        if (fileName === "Parent directory" || url.includes("..")) {
+            // HIDE if on Main Page
+            if (isRoot) {
+                row.style.display = "none";
+                return;
+            }
+
+            // Show as small card in subfolders
+            row.classList.add("folder-card", "parent-card");
+            
+            const thumbBox = document.createElement("div");
+            thumbBox.className = "thumb-box";
+            thumbBox.innerHTML = `
+                <div style="font-size: 40px;">↩️</div>
+                <div class="folder-badge" style="background: #6c757d;">HOME</div>
+            `;
+
+            const infoBox = document.createElement("div");
+            infoBox.className = "info-box";
+            infoBox.innerHTML = `
+                <div class="file-name" style="color: #6c757d;">Parent Directory</div>
+            `;
+
+            row.innerHTML = "";
+            row.appendChild(thumbBox);
+            row.appendChild(infoBox);
+            row.onclick = () => window.location.href = url;
+            row.style.cursor = "pointer";
+            return; 
+        }
+
+        // 3. FOLDER & FILE LOGIC
+        const thumbBox = document.createElement("div");
+        thumbBox.className = "thumb-box";
+        const infoBox = document.createElement("div");
+        infoBox.className = "info-box";
+
+        if (isFolder) {
+            row.classList.add("folder-card");
+            
+            const coverUrl = url + "cover.jpg";
+            thumbBox.innerHTML = `
+                <img src="${coverUrl}" onerror="this.parentElement.innerHTML='<span style=\'font-size:60px\'>📁</span>'" style="object-fit: cover; width:100%; height:100%;">
+                <div class="folder-badge">Album</div>
+            `;
+
+            const desc = folderData[fileName] || "Click to view album content";
+            
+            // REMOVED THE BLUE PATH TEXT (fileName) HERE
+            infoBox.innerHTML = `
+                <div class="folder-desc">${desc}</div>
+            `;
+
+            row.onclick = () => window.location.href = url;
+            row.style.cursor = "pointer";
+
+        } else {
+            // FILES
+            const isImg = fileName.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp|svg)$/i);
+            const isVid = fileName.toLowerCase().match(/\.(mp4|webm|ogg|mov|avi)$/i);
+
+            if (isImg || isVid) {
+                mediaList.push({url, isVid});
+                const itemIdx = mediaList.length - 1;
+                if (isVid) {
+                    thumbBox.classList.add('video-type');
+                    thumbBox.innerHTML = `<video src="${url}" muted onmouseover="this.play()" onmouseout="this.pause()"></video>`;
+                } else {
+                    thumbBox.innerHTML = `<img src="${url}" loading="lazy">`;
+                }
+                row.onclick = (e) => {
+                    e.preventDefault();
+                    openLightbox(itemIdx);
+                };
+                row.style.cursor = "pointer";
+            } else {
+                thumbBox.innerHTML = `<span style="font-size: 50px;">📄</span>`;
+            }
+
+            const size = cells[1].innerText;
+            const date = cells[2].innerText;
+            infoBox.innerHTML = `
+                <div class="file-name">${fileName}</div>
+                <div class="file-meta"><span>${size}</span><span>${date}</span></div>
+            `;
+        }
+
+        row.innerHTML = "";
+        row.appendChild(thumbBox);
+        row.appendChild(infoBox);
+        
+        // Note: Download button block was removed as requested
+    });
+}
+
+    // --- HELPER FUNCTIONS ---
+
+    let isDragging = false;
+    let startX, startY, translateX = 0, translateY = 0, scale = 1;
+
+    function openLightbox(index) {
+        currentIndex = index;
+        scale = 1; translateX = 0; translateY = 0;
+        
+        const item = mediaList[currentIndex];
+        const img = document.getElementById('lightbox-img');
+        const vid = document.getElementById('lightbox-video');
+
+        img.style.display = 'none'; img.classList.remove('zoomed');
+        updateImageTransform();
+        vid.style.display = 'none'; vid.pause();
+
+        if (item.isVid) {
+            vid.src = item.url; vid.style.display = 'block'; vid.play();
+        } else {
+            img.src = item.url; img.style.display = 'block';
+        }
+        document.getElementById('lightbox').style.display = 'flex';
+    }
+
+    function updateImageTransform() {
+        const img = document.getElementById('lightbox-img');
+        img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+    }
+
+    const img = document.getElementById('lightbox-img');
+    img.addEventListener('mousedown', (e) => {
+        if (scale > 1) {
+            isDragging = true; img.classList.add('grabbing');
+            startX = e.clientX - translateX; startY = e.clientY - translateY;
+            e.preventDefault(); e.stopPropagation();
+        }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        translateX = e.clientX - startX; translateY = e.clientY - startY;
+        updateImageTransform();
+    });
+
+    window.addEventListener('mouseup', (e) => {
+        if (isDragging) {
+            isDragging = false; img.classList.remove('grabbing'); e.stopPropagation();
+        }
+    });
+
+    img.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.2 : 0.2;
+        const newScale = scale + delta;
+        if (newScale >= 1 && newScale <= 5) {
+            scale = newScale;
+            if (scale <= 1) { translateX = 0; translateY = 0; this.classList.remove('zoomed'); } 
+            else { this.classList.add('zoomed'); }
+            updateImageTransform();
+        }
+    }, { passive: false });
+
+    function changeMedia(step) {
+        scale = 1; translateX = 0; translateY = 0;
+        currentIndex = (currentIndex + step + mediaList.length) % mediaList.length;
+        openLightbox(currentIndex);
+    }
+
+    function filterList() {
+        const input = document.getElementById("search");
+        const clearBtn = document.getElementById("clear-search");
+        const filter = input.value.toUpperCase();
+        const rows = document.querySelectorAll("#list tbody tr");
+        clearBtn.style.display = filter.length > 0 ? "block" : "none";
+        rows.forEach(row => {
+            const name = row.querySelector(".file-name")?.innerText.toUpperCase() || "";
+            // Check descriptions for folders too
+            const desc = row.querySelector(".folder-desc")?.innerText.toUpperCase() || "";
+            row.style.display = (name.includes(filter) || desc.includes(filter)) ? "flex" : "none";
+        });
+    }
+
+    function clearSearch() {
+        const input = document.getElementById("search");
+        input.value = "";
+        filterList();
+        input.focus();
+    }
+
+    let slideshowInterval = null;
+    function toggleSlideshow() {
+        const btn = document.getElementById('lb-play');
+        if (slideshowInterval) {
+            clearInterval(slideshowInterval); slideshowInterval = null;
+            btn.innerText = "▶ Play"; btn.classList.remove('playing');
+        } else {
+            btn.innerText = "⏸ Pause"; btn.classList.add('playing');
+            slideshowInterval = setInterval(() => { changeMedia(1); }, 3000);
+        }
+    }
+
+    document.getElementById('lightbox').onclick = function() {
+        this.style.display = 'none';
+        if (slideshowInterval) toggleSlideshow();
+        document.getElementById('lightbox-video').pause();
+    };
+
+    document.getElementById('lb-prev').onclick = (e) => { e.stopPropagation(); changeMedia(-1); };
+    document.getElementById('lb-next').onclick = (e) => { e.stopPropagation(); changeMedia(1); };
+    document.addEventListener('keydown', (e) => {
+        if (document.getElementById('lightbox').style.display === 'flex') {
+            if (e.key === "ArrowLeft") changeMedia(-1);
+            if (e.key === "ArrowRight") changeMedia(1);
+            if (e.key === "Escape") document.getElementById('lightbox').click();
+        }
+    });
+
+    window.onload = makeThumbnails;
+</script>
+</body>
+</html>

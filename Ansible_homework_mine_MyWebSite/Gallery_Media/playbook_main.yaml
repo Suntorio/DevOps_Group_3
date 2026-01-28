@@ -52,7 +52,7 @@
 
   vars:
     hosted_zone_id: "Z05114633R8I6QJ512GC"  # Replace with your Hosted Zone ID
-    record_name: "www.alex-tech.us."            # Replace with your domain
+    record_name: "alex-tech.us."            # Replace with your domain
     ttl: 300
 
   tasks:
@@ -118,7 +118,7 @@
   become_user: root
   
   vars:
-    domain_name: "www.alex-tech.us"
+    domain_name: "alex-tech.us"
     email_address: "aleks23.la.usa@gmail.com"
 
   tasks:
@@ -138,6 +138,73 @@
         owner: www-data
         group: www-data
         mode: '0644'
+  
+    - name: Install NGINX Fancyindex Module
+      apt:
+        name: libnginx-mod-http-fancyindex
+        state: present
+      become: yes
+
+    # - name: Configure NGINX with Fancyindex
+    #   template:
+    #     src: nginx_config.j2
+    #     dest: /etc/nginx/sites-available/{{ domain_name }}
+    #   notify: Reload NGINX
+
+    - name: Clone Nginx Fancyindex Theme (for gallery)
+      ansible.builtin.git:
+          repo: 'https://github.com/Naereen/Nginx-Fancyindex-Theme.git'
+          dest: "/var/www/{{ domain_name }}/fancy-theme"
+          #version: master  # or 'main' depending on the repo branch
+          update: yes      # Pulls latest changes if the folder already exists
+      become: true
+
+    # - name: Copy header.html and footer.html from fancy_templates folder to remote folder
+    #   rsync:
+    #       src: "my_folder/"
+    #       dest: "/var/www/fancy-theme/Nginx-Fancyindex/"
+    #       owner: www-data
+    #       group: www-data
+    #       mode: '0755'
+
+    - name: Sync local footer.html and header.html with EC2 using rsync
+      ansible.posix.synchronize:
+        src: "fancy_templates/" # Trailing slash = copy contents ONLY
+        dest: "/var/www/{{ domain_name }}/fancy-theme/Nginx-Fancyindex"
+        recursive: yes
+        delete: no              # Removes files on remote that aren't in local folder
+        rsync_opts:
+          - "--exclude=index.html"
+      tags: fancy-sync
+
+    - name: Sync local index.html with EC2 using rsync
+      ansible.posix.synchronize:
+        src: "fancy_templates/" # Trailing slash = copy contents ONLY
+        dest: "/var/www/{{ domain_name }}"
+        recursive: yes
+        delete: no              # Removes files on remote that aren't in local folder
+        rsync_opts:
+          - "--exclude=header.html"
+          - "--exclude=footer.html"
+      tags: fancy-sync2
+    
+    - name: Set permissions for the theme folder
+      ansible.builtin.file:
+          path: "/var/www/{{ domain_name }}"
+          state: directory
+          recurse: yes
+          owner: www-data
+          group: www-data
+          mode: '0755'
+      tags: fancy-perm
+
+    - name: Create <fancy-media> directory
+      ansible.builtin.file:
+        path: "/var/www/{{ domain_name }}/fancy-media"
+        state: directory
+        owner: www-data
+        group: www-data     # "ubuntu" for Setting group to ubuntu allows your rsync to work
+        mode: '0755'        # '775' gives the group (ubuntu) write permissions
 
     # 3. Create a basic NGINX config so Certbot can find the domain
     # This replaces the 'default' file with one containing your server_name
@@ -154,7 +221,15 @@
 
                   # 1. Main Website Root
                   location / {
-                      try_files $uri $uri/ =404;
+                      # Allow only specific IPs
+                      # My IP
+                      allow 76.93.124.101;
+                
+                      # Mom's IP
+                      allow 109.161.53.245; 
+                  
+                      # Deny everyone else
+                      deny all; 
                   }
 
                   # 2. Fancy Media Gallery (The S3 Mounted Folder)
@@ -165,7 +240,7 @@
                       # Enable Fancyindex
                       fancyindex on;
                       fancyindex_exact_size off; # Shows KB/MB instead of bytes
-                      fancyindex_localtime on;
+                      fancyindex_localtime off;
                       
                       # Paths to the Theme assets cloned via Git
                       # Adjust these paths if the Git repo structure is different
@@ -213,44 +288,7 @@
       args:
         creates: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
         
-    - name: Install NGINX Fancyindex Module
-      apt:
-        name: libnginx-mod-http-fancyindex
-        state: present
-      become: yes
-
-    # - name: Configure NGINX with Fancyindex
-    #   template:
-    #     src: nginx_config.j2
-    #     dest: /etc/nginx/sites-available/{{ domain_name }}
-    #   notify: Reload NGINX
-
-    - name: Clone Nginx Fancyindex Theme
-      ansible.builtin.git:
-          repo: 'https://github.com/Naereen/Nginx-Fancyindex-Theme.git'
-          dest: "/var/www/{{ domain_name }}/fancy-theme"
-          #version: master  # or 'main' depending on the repo branch
-          update: yes      # Pulls latest changes if the folder already exists
-      become: true
-
-    - name: Set permissions for the theme folder
-      ansible.builtin.file:
-          path: "/var/www/{{ domain_name }}/fancy-theme"
-          state: directory
-          recurse: yes
-          owner: www-data
-          group: www-data
-          mode: '0755'
-
-    - name: Create fancy-media directory
-      ansible.builtin.file:
-        path: "/var/www/{{ domain_name }}/fancy-media"
-        state: directory
-        owner: www-data
-        group: www-data     # "ubuntu" for Setting group to ubuntu allows your rsync to work
-        mode: '0755'        # '775' gives the group (ubuntu) write permissions
-
-    # - name: Mount S3 bucket using IAM Role
+        # - name: Mount S3 bucket using IAM Role
     #   ansible.posix.mount:
     #         path: "/var/www/{{ domain_name }}/fancy-media"
     #         src: "alex-tech.us-gallery"
