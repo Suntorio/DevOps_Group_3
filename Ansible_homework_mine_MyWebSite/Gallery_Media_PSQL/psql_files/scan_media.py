@@ -5,11 +5,14 @@ from PIL import Image
 from PIL.ExifTags import TAGS
 
 # --- CONFIGURATION ---
+user = os.getenv("PSQLDB_USER")
+password = os.getenv("PSQLDB_PASSWORD")
+
 DB_CONFIG = {
     "host": "localhost",
     "database": "media_vault",
-    "user": "aleks_admin", # Use 'aleks_admin' if you went with the 'ks' spelling
-    "password": "aleks2pgsql"
+    "user": user, # Use 'aleks_admin' if you went with the 'ks' spelling
+    "password": password
 }
 MEDIA_PATH = "/var/www/html/fancy-media" # Update this to your actual folder
 # ---------------------

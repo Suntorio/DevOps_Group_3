@@ -1,16 +1,19 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
-import psycopg2
+import os, psycopg2
 import psycopg2.extras
 
 app = Flask(__name__)
 CORS(app)
 
+user = os.getenv("PSQLDB_USER")
+password = os.getenv("PSQLDB_PASSWORD")
+
 DB_CONFIG = {
     "host": "localhost",
     "database": "media_vault",
-    "user": "aleks_admin", # Or 'aleks_admin'
-    "password": "aleks2pgsql"
+    "user": user,
+    "password": password
 }
 
 def get_db_connection():

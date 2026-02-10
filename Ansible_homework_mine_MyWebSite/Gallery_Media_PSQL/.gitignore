@@ -1,3 +1,4 @@
 # Ignore a folder
 /.terraform/
 hosts
+.env
