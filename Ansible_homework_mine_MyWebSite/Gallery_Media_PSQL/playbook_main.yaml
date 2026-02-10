@@ -1,0 +1,353 @@
+---
+- name: Configure Nginx Web Server with FANCY on Ubuntu 24.04
+  hosts: all  # Replace with your server's hostname or IP address
+  become: true
+  become_method: sudo
+  become_user: root
+  
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Nginx, OpenSSL, UnZip, Certbot, S3FS
+      apt:
+        name: [nginx, openssl, unzip, certbot, python3-certbot-nginx, s3fs]
+        state: present
+    
+    - name: Download AWS CLI v2 installer
+      get_url:
+        url: https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip
+        dest: /tmp/awscliv2.zip
+        mode: '0644'
+
+    - name: Unzip AWS CLI installer
+      unarchive:
+        src: /tmp/awscliv2.zip
+        dest: /tmp
+        remote_src: yes
+        creates: /tmp/aws/install
+
+    - name: Install AWS CLI v2
+      command: /tmp/aws/install
+      args:
+        creates: /usr/local/bin/aws
+    
+    - name: Start Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Reload NGINX
+      service:
+        name: nginx
+        state: reloaded
+
+#Dynamic A-Record Updater on AWS Route 53
+- name: Update Route 53 A-record with EC2 public IP
+  hosts: all
+  gather_facts: false
+
+  vars:
+    hosted_zone_id: "Z05114633R8I6QJ512GC"  # Replace with your Hosted Zone ID
+    record_name: "alex-tech.us."            # Replace with your domain
+    ttl: 300
+
+  tasks:
+  # Amazon recently made IMDSv2 the default for all new EC2 instances and Amazon Linux 2023
+    - name: Get IMDSv2 Token
+      uri:
+        url: http://169.254.169.254/latest/api/token
+        method: PUT
+        headers:
+          X-aws-ec2-metadata-token-ttl-seconds: "21600"
+        return_content: true  # <--- CRITICAL FIX: Captures the token string
+      register: token_response
+
+    - name: Get EC2 public IP using token
+      uri:
+        url: http://169.254.169.254/latest/meta-data/public-ipv4
+        method: GET
+        headers:
+          # Use the token we just captured, and trim whitespace just in case
+          X-aws-ec2-metadata-token: "{{ token_response.content | trim }}"
+        return_content: true  # <--- Capture the IP address in the response
+      register: public_ip
+
+    - name: Print Public IP (Debug)
+      debug:
+        msg: "The Public IP is: {{ public_ip.content }}"
+
+    - name: Create change-batch.json with real values
+      copy:
+        dest: /tmp/change-batch.json
+        content: |
+          {
+            "Comment": "Update A-record with EC2 public IP",
+            "Changes": [{
+              "Action": "UPSERT",
+              "ResourceRecordSet": {
+                "Name": "{{ record_name }}",
+                "Type": "A",
+                "TTL": {{ ttl }},
+                "ResourceRecords": [{
+                  "Value": "{{ public_ip.content }}"
+                }]
+              }
+            }]
+          }
+
+    - name: Run AWS CLI to update Route 53 A-record
+      command: >
+        aws route53 change-resource-record-sets
+        --hosted-zone-id {{ hosted_zone_id }}
+        --change-batch file:///tmp/change-batch.json
+
+    - name: Show output of CLI command
+      debug:
+        var: command_result
+      when: command_result is defined
+
+# This YAML code assumes you are using Ubuntu/Debian and that your Route 53 DNS is already pointing to this server's IP.
+- name: Setup SSL with Certbot
+  hosts: all
+  become: true
+  become_method: sudo
+  become_user: root
+  
+  vars:
+    domain_name: "alex-tech.us"
+    email_address: "aleks23.la.usa@gmail.com"
+
+  tasks:
+    - name: Create directory alex-tech.us
+      file:
+        path: "/var/www/{{ domain_name }}"
+        state: directory
+        owner: www-data
+        group: www-data
+        mode: '0755'
+
+    - name: Copy default Nginx page to the new domain folder
+      copy:
+        src: /var/www/html/index.nginx-debian.html
+        dest: "/var/www/{{ domain_name }}/index.html"
+        remote_src: yes  # <--- Essential: tells Ansible the file is already on the server
+        owner: www-data
+        group: www-data
+        mode: '0644'
+  
+    - name: Install NGINX Fancyindex Module
+      apt:
+        name: libnginx-mod-http-fancyindex
+        state: present
+      become: yes
+
+    # - name: Configure NGINX with Fancyindex
+    #   template:
+    #     src: nginx_config.j2
+    #     dest: /etc/nginx/sites-available/{{ domain_name }}
+    #   notify: Reload NGINX
+
+    - name: Clone Nginx Fancyindex Theme (for gallery)
+      ansible.builtin.git:
+          repo: 'https://github.com/Naereen/Nginx-Fancyindex-Theme.git'
+          dest: "/var/www/{{ domain_name }}/fancy-theme"
+          #version: master  # or 'main' depending on the repo branch
+          update: yes      # Pulls latest changes if the folder already exists
+      become: true
+
+    # - name: Copy header.html and footer.html from fancy_templates folder to remote folder
+    #   rsync:
+    #       src: "my_folder/"
+    #       dest: "/var/www/fancy-theme/Nginx-Fancyindex/"
+    #       owner: www-data
+    #       group: www-data
+    #       mode: '0755'
+
+    - name: Sync local footer.html and header.html with EC2 using rsync
+      ansible.posix.synchronize:
+        src: "fancy_templates/" # Trailing slash = copy contents ONLY
+        dest: "/var/www/{{ domain_name }}/fancy-theme/Nginx-Fancyindex"
+        recursive: yes
+        delete: no              # Removes files on remote that aren't in local folder
+        rsync_opts:
+          - "--exclude=index.html"
+      tags: fancy-sync
+
+    - name: Sync local index.html with EC2 using rsync
+      ansible.posix.synchronize:
+        src: "fancy_templates/" # Trailing slash = copy contents ONLY
+        dest: "/var/www/{{ domain_name }}"
+        recursive: yes
+        delete: no              # Removes files on remote that aren't in local folder
+        rsync_opts:
+          - "--exclude=header.html"
+          - "--exclude=footer.html"
+      tags: fancy-sync2
+    
+    - name: Set permissions for the theme folder
+      ansible.builtin.file:
+          path: "/var/www/{{ domain_name }}"
+          state: directory
+          recurse: yes
+          owner: www-data
+          group: www-data
+          mode: '0755'
+      tags: fancy-perm
+
+    - name: Create <fancy-media> directory
+      ansible.builtin.file:
+        path: "/var/www/{{ domain_name }}/fancy-media"
+        state: directory
+        owner: www-data
+        group: www-data     # "ubuntu" for Setting group to ubuntu allows your rsync to work
+        mode: '0755'        # '775' gives the group (ubuntu) write permissions
+
+    # 3. Create a basic NGINX config so Certbot can find the domain
+    # This replaces the 'default' file with one containing your server_name
+    - name: Create NGINX config with Fancyindex and S3 Mount
+      ansible.builtin.copy:
+            dest: "/etc/nginx/sites-available/{{ domain_name }}"
+            content: |
+              server {
+                  listen 80;
+                  server_name {{ domain_name }} www.{{ domain_name }};
+                  root /var/www/{{ domain_name }};
+                  index index.html;
+                  charset utf-8;
+
+                  # 1. Main Website Root
+                  location / {
+                      # Allow only specific IPs
+                      # My IP
+                      allow 76.93.124.101;
+                
+                      # Mom's IP
+                      allow 109.161.53.245; 
+                  
+                      # Deny everyone else
+                      deny all; 
+                  }
+
+                  # 2. Fancy Media Gallery (The S3 Mounted Folder)
+                  location /fancy-media/ {
+                      # Points to the folder where s3fs is mounted
+                      alias /var/www/{{ domain_name }}/fancy-media/;
+                      
+                      # Enable Fancyindex
+                      fancyindex on;
+                      fancyindex_exact_size off; # Shows KB/MB instead of bytes
+                      fancyindex_localtime off;
+                      
+                      # Paths to the Theme assets cloned via Git
+                      # Adjust these paths if the Git repo structure is different
+                      fancyindex_header "/fancy-theme/Nginx-Fancyindex/header.html";
+                      fancyindex_footer "/fancy-theme/Nginx-Fancyindex/footer.html";
+                      
+                      # Security: Don't show the theme folder itself in the list
+                      fancyindex_ignore "fancy-theme";
+                  }
+
+                  location /fancy-theme/ {
+                      alias /var/www/{{ domain_name }}/fancy-theme/;
+                  }
+              }
+      notify: Reload NGINX
+
+    # 4. Enable the new config
+    - name: Enable site configuration
+      file:
+        src: "/etc/nginx/sites-available/{{ domain_name }}"
+        dest: "/etc/nginx/sites-enabled/{{ domain_name }}"
+        state: link
+
+    # 5. Remove the default NGINX site to avoid conflicts
+    - name: Remove default NGINX config
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+      notify: Reload NGINX
+
+    # 6. Flush handlers to ensure NGINX is running with the new server_name
+    - meta: flush_handlers
+
+    # 7. Run Certbot to get the SSL certificate
+    # --non-interactive: Don't wait for user input
+    # --redirect: Automatically update NGINX to force HTTPS
+    - name: Run Certbot NGINX plugin
+      command: >
+        certbot --nginx
+        --non-interactive
+        --agree-tos
+        --email {{ email_address }}
+        -d {{ domain_name }}
+        --redirect
+      args:
+        creates: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+        
+        # - name: Mount S3 bucket using IAM Role
+    #   ansible.posix.mount:
+    #         path: "/var/www/{{ domain_name }}/fancy-media"
+    #         src: "alex-tech.us-gallery"
+    #         fstype: fuse.s3fs
+    #         # One long string ensures fstab gets formatted correctly (added 'use_cache=/dev/null' to prevent ANY local saving)
+    #         opts: "_netdev,allow_other,iam_role=auto,endpoint=us-east-1,url=https://s3.us-east-1.amazonaws.com,use_path_request_style,use_cache=/dev/null"
+    #         state: mounted
+
+
+    # - name: Mount S3 bucket (With specific permissions)
+    #   ansible.posix.mount:
+    #     path: "/var/www/{{ domain_name }}/fancy-media"
+    #     src: "alex-tech.us-gallery"
+    #     fstype: fuse.s3fs
+    #     opts: >
+    #       _netdev,
+    #       allow_other,
+    #       iam_role=auto,
+    #       endpoint=us-east-1,
+    #       url=https://s3.us-east-1.amazonaws.com,
+    #       use_path_request_style,
+    #       use_cache=/dev/null,
+    #       umask=0022,      # Sets files to 755 (Readable by everyone, Writable by Owner)
+    #       mp_umask=0022    # Sets the mount point folder itself to 755
+    #     state: mounted
+
+
+
+
+    # # 1. Create a dedicated cache directory
+    # - name: Create s3fs cache directory
+    #   ansible.builtin.file:
+    #     path: /tmp/s3fs_cache
+    #     state: directory
+    #     mode: '0777'  # Wide permissions so s3fs won't complain
+
+    # # 2. Updated Mount Task
+    # - name: Mount S3 bucket with Cache Fix
+    #   ansible.posix.mount:
+    #     path: "/var/www/{{ domain_name }}/fancy-media"
+    #     src: "alex-tech.us-gallery"
+    #     fstype: fuse.s3fs
+    #     # Added 'use_cache=/tmp/s3fs_cache'
+    #     opts: "_netdev,allow_other,iam_role=auto,endpoint=us-east-1,url=https://s3.us-east-1.amazonaws.com,use_path_request_style,umask=0022,use_cache=/tmp/s3fs_cache"
+    #     state: mounted
+
+
+
+    - name: Mount S3 bucket (Final Fix)
+      ansible.posix.mount:
+        path: "/var/www/{{ domain_name }}/fancy-media"
+        src: "alex-tech.us-gallery"
+        fstype: fuse.s3fs
+        # IMPORTANT: No spaces after the commas in this string!
+        opts: "_netdev,allow_other,iam_role=auto,endpoint=us-east-1,url=https://s3.us-east-1.amazonaws.com,use_path_request_style,umask=0022"
+        state: mounted
+
+  handlers:
+  - name: Reload NGINX
+    service:
+      name: nginx
+      state: reloaded
