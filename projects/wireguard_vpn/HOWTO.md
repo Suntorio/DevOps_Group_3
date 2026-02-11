@@ -309,21 +309,21 @@ $ sudo systemctl restart systemd-resolved
 
 $ sudo unbound-checkconf //verifying the unbound config
 
-In case of the issue:
+In case of the issue
 aleks@dell-ubuntu:/var/lib/unbound$ sudo unbound-checkconf 
 [1770835171] unbound-checkconf[644819:0] error: trust anchor presented twice
 [1770835171] unbound-checkconf[644819:0] error: could not parse auto-trust-anchor-file /var/lib/unbound/root.key line 2
 
-1. Open your config file:
+1. Open your config file
 $ sudo nano /etc/unbound/unbound.conf
 
-2. Find this line and add a # in front of it:
+2. Find this line and add a # in front of it
 # auto-trust-anchor-file: "/var/lib/unbound/root.key"  <-- Comment this out, save and exit!
 
 Verify the Fix
 $ sudo unbound-checkconf
 
-If it returns no errors, you can finally start the service:
+If it returns no errors, you can finally start the service
 $ sudo systemctl restart unbound
 $ sudo systemctl status unbound
 -----------------------------------------
