@@ -114,8 +114,11 @@ $ sudo iptables -A INPUT -s 10.10.10.0/24 -p udp -m udp --dport 53 -m conntrack 
 Allow forwarding of packets that stay in the VPN tunnel
 $ sudo iptables -A FORWARD -i wg0 -o wg0 -m conntrack --ctstate NEW -j ACCEPT
 
-Set up nat
+Set up NAT
 $ sudo iptables -t nat -A POSTROUTING -s 10.10.10.0/24 -o wlp2s0 -j MASQUERADE
+
+RUN THIS IF YOU DON'T HAVE UFW (firewall) for Internet connection established through wireguard server
+$ sudo iptables -P FORWARD ACCEPT
 
 We also want to ensure that the rules remain persistent across reboots
 $ sudo apt-get install iptables-persistent
@@ -226,9 +229,8 @@ With that, our server setup is done :)
 We can now finally set up our client.
 
 We begin by installing wireguard on the client depending on what platform we’re on. The installation process is the same as the server’s.
-add-apt-repository ppa:wireguard/wireguard
 apt-get update
-apt-get install wireguard-dkms wireguard-tools linux-headers-$(uname -r)
+apt-get install wireguard
 
 If you are on Kali Linux, you may have to install resolvconf if you don’t have it already.
 We had already generated the wg0-client.conf client config in step 3.2. All we need to do is to move it to /etc/wireguard/wg0-client.conf.
@@ -245,8 +247,8 @@ wg0-client Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-0
           TX packets:177 errors:0 dropped:0 overruns:0 carrier:0
           collisions:0 txqueuelen:1 
           RX bytes:14236 (14.2 KB)  TX bytes:31516 (31.5 KB)
-The wg command is a great Wireguard utility that you can use to view connection status.
 
+The wg command is a great Wireguard utility that you can use to view connection status.
 sudo wg show
 	
 	interface: wg0-client
@@ -261,6 +263,9 @@ sudo wg show
 	  latest handshake: 49 seconds ago
 	  transfer: 11.41 MiB received, 862.25 KiB sent
 	  persistent keepalive: every 21 seconds
+
+Summary View (a quick list of their names (if defined), public keys, and last handshake times)
+sudo wg show all dump
 
 You should now have a secure VPN connection in place. You can confirm this by checking your IP on sites such as https://whoer.net/.
 
