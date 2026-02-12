@@ -159,7 +159,7 @@ server:
   root-hints: "/var/lib/unbound/root.hints"
 
   #Use the root servers key for DNSSEC
-  auto-trust-anchor-file: "/var/lib/unbound/root.key"
+  auto-trust-anchor-file: "/var/lib/unbound/root.key" # <-- Comment this out in case of "trust anchor presented twice" error
 
   #Respond to DNS requests on all interfaces
   interface: 0.0.0.0
@@ -195,8 +195,6 @@ server:
   cache-max-ttl: 14400
   prefetch: yes
   prefetch-key: yes
-
-I have commented the config file explaining the specific configuration details.
 
 Finally we set some permissions, enable and test the operation on our DNS resolver.
 
@@ -265,14 +263,14 @@ sudo wg show
 	  persistent keepalive: every 21 seconds
 
 Summary View (a quick list of their names (if defined), public keys, and last handshake times)
-sudo wg show all dump
+$ sudo wg show all dump
 
 You should now have a secure VPN connection in place. You can confirm this by checking your IP on sites such as https://whoer.net/.
 
 Ensure you also run a DNS leak test on http://dnsleak.com/.
 
 If you want to disconnect from the VPN you have to bring the VPN interface down.
-sudo wg-quick down wg0-client
+$ sudo wg-quick down wg0-client
 
 Wrapping up
 There are some points about the use of Wireguard that should be noted. First, your VPN connection will remain persistent across networks. This means that unless you specifically bring the interface down or shutdown the computer, you will always be on the VPN. Disconnecting and reconnecting to the same or a different network maintains the connection. Also note that a sleep or suspend of the computer will maintain the interface for when the computer becomes active again.
@@ -280,18 +278,18 @@ There are some points about the use of Wireguard that should be noted. First, yo
 This is mostly a good thing as you’ll maintain your VPN connection even when your internet is unstable or you switch networks.
 
 Another thing to note is that you can set up the VPN interface to be persistent across reboots by enabling it as a service.
+$ sudo systemctl enable wg-quick@wg0-client.service
 
-sudo systemctl enable wg-quick@wg0-client.service
 This means that you’ll be always on VPN from the moment you boot up the computer.
 
 You may also want to add new clients and the way you do this is as follows:
 
 Generate new client keys on the server
+$ wg genkey | tee new_client_private_key | wg pubkey > new_client_public_key
 
-wg genkey | tee new_client_private_key | wg pubkey > new_client_public_key
 Then register them on the server
+$ wg set wg0 peer <new_client_public_key> allowed-ips <new_client_vpn_IP>/32
 
-wg set wg0 peer <new_client_public_key> allowed-ips <new_client_vpn_IP>/32
 Finally generate the new client config as described in step 3.2 and you can then set up your clients as per step 8.
 
 ----------------------------------------
