@@ -1,3 +1,7 @@
-wireguard_vpn/*
-!wireguard_vpn/
-!wireguard_vpn/HOWTO.md
+vpn_wireguard/*
+!vpn_wireguard/
+!vpn_wireguard/HOWTO.md
+
+vpn_amneziawg/*
+!vpn_amneziawg/
+!vpn_amneziawg/HOWTO.md

@@ -66,9 +66,6 @@ resource "aws_security_group" "web-sg" {
   }
 }
 
-
-
-
 # 1. Update the Role to include S3 Access alongside Route53
 resource "aws_iam_role" "route53_update_role" {
   name = "Route53UpdateRole"
@@ -149,7 +146,6 @@ resource "aws_s3_bucket_policy" "allow_access_from_ec2" {
   })
 }
 
-
 # # Connect NGINX to S3 Bucket:
 # # 1. Define the Policy Rules (The Logic)
 # data "aws_iam_policy_document" "nginx_s3_access" {
@@ -189,8 +185,6 @@ resource "aws_s3_bucket_policy" "allow_access_from_ec2" {
 #   # References the logic defined above
 #   policy = data.aws_iam_policy_document.nginx_s3_access.json
 # }
-
-
 
 resource "aws_instance" "web_server" {
   ami                    = "ami-0ecb62995f68bb549" // Ubuntu server 24.04 LTS

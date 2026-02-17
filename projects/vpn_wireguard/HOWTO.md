@@ -312,7 +312,7 @@ $ sudo systemctl restart systemd-resolved
 
 $ sudo unbound-checkconf //verifying the unbound config
 
-In case of the issue
+In case of the issue:
 aleks@dell-ubuntu:/var/lib/unbound$ sudo unbound-checkconf 
 [1770835171] unbound-checkconf[644819:0] error: trust anchor presented twice
 [1770835171] unbound-checkconf[644819:0] error: could not parse auto-trust-anchor-file /var/lib/unbound/root.key line 2
